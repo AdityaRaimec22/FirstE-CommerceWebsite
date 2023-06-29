@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>sign In</title>
+</head>
+<body>
+
+    <!-- {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <strong>Message:</strong> {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+    </button>
+    </div>
+    {% endfor %}
+
+    <h1>Welcome to the login page of My first website</h1>
+    <div class="signInContainer">
+        
+        <form method="post" action="/home">
+            {% csrf_token %}
+            <div class="username">
+                <label class="label" for="username">username</label>
+                <input class="form-control" type="text" id="username" name="username" placeholder="Enter your name" Required>
+            </div>
+            <div class="pass1">
+                <label class="label" for="pass1">password</label>
+                <input class="form-control" type="password" id="pass1" name="password" placeholder="Enter your password" Required>
+            </div>
+            <div class="buttons">
+                <button type="submit" class="btn">Sign In</button>
+                <button type="submit" class="btn"><a href="/signup">Sign Up</a></button>
+            </div>
+        </form>
+    </div> -->
+
+    {% for message in messages %}
+    <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+        <strong>Message:</strong> {{ message }}
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+    </button>
+    </div>
+    {% endfor %}
+
+    <h3>Create your account!</h3>
+    <form method="post" action="">
+        {% csrf_token %}
+        <div class="form-group username">
+            <label for="username">Username</label>
+            <input type="text" class="form-control" id="username" name="username" placeholder="Create A Username (use only letters and numbers)" Required>
+        </div>
+        <div class="pass1">
+            <label for="pass1">Password</label>
+            <input type="password" class="form-control" id="pass1" name="pass1" placeholder="Create Your Password" Required>
+        </div>
+        <div class="buttons">
+            <button type="submit" class="btn">Sign In</button>
+            <button type="submit" class="btn"><a href="/signup">Sign Up</a></button>
+        </div>
+    </form>
+
+    <style>
+
+        .username,
+        .pass1{
+            display: flex;
+            flex-direction: column;
+        }
+
+        .btn{
+            margin: 10px;
+            height: 31px;
+            width: 77px;
+            border-radius: 14px;
+        }
+
+        body{
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+            background-color: #E3E6E6
+        }
+
+        .buttons{
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .form-control
+        {
+            margin: 10px;
+            border-radius: 9px;
+            width: 306px;
+            height: 24px;
+        }
+
+        .btn{
+            margin: 10px;
+        }
+
+        .label{
+            font-size: 20px;
+        }
+    </style>
+</body>
+</html>
