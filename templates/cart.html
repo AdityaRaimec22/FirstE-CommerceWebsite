@@ -1,95 +1,300 @@
 {% extends 'basic.html' %}
 {% block title %}Cart - My Awesome Cart{% endblock %}
 {% block body %}
-    <h2>These are the items in your Cart</h2>
-    <a href="/home/cart/checkout"><button class="btn btn-primary">Checkout</button></a>
-    <div class="container2" id="cartContainer">
+<h2>These are the items in your Cart</h2>
+<a href="/home/cart/checkout">
+    <button class="btn btn-primary" id="checkout" href="/home/cart/checkout" style="margin: 20px;">Check-Out</button>
+</a>
+{% for product in cart_product_list %}
+<div class="container1">
+    <li>
+        <img height="200px" class="image" width="200px" src="{{ product.image_src }}" alt="Product Image">
+        <p>{{ product.desc }}</p>
+        <p>{{ product.name }}</p>
+        <p>{{ product.qty }}</p>
+        <p>{{ product.prodId }}</p>
+        <div>
+            {% csrf_token %}
+            <button id="{{product.prodId}}" data-product-name="{{product.name}}" data-price="{{product.price}}"
+                data-desc="{{product.desc}}" data-image="{{product.image_src}}" class="btn btn-primary remove"
+                style="margin: 10px;">Remove
+            </button>
+            <span id="div{{product.prodId}}"><button id="qty{{product.prodId}}" class="btn btn-primary qty"
+                    data-product-name="{{product.name}}" data-price="{{product.price}}" data-desc="{{product.desc}}"
+                    data-image="{{product.image_src}}">qty</button></span>
+        </div>
+    </li>
+</div>
+{% endfor %}
 
-    </div>
+</div>
 
-    <style>
-        .container2 {
-            margin-top: 54px;
-            display: flex;
-            /* flex-direction: column; */
-            flex-wrap: wrap;
-            justify-content: center;
-            margin-left: 100px;
-            height: auto;
-            width: 90%;
-        }
+<style>
+    .show {
+        display: block;
+        height: 0;
+        width: 0;
+        visibility: collapse;
+    }
 
-        .smallContainer1 {
-            height: 239px;
-            margin-left: 37px;
-            width: 91%;
-            display: flex;
-            flex-direction: column;
-        }
+    .container2 {
+        margin-top: 54px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        margin-left: 100px;
+        height: auto;
+        width: 90%;
+    }
 
-        .smallContainer2 {
-            margin-left: 30px;
-            height: 239px;
-            width: 91%;
-        }
-    </style>
+    .smallContainer1 {
+        height: 239px;
+        margin-left: 37px;
+        width: 91%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .smallContainer2 {
+        margin-left: 30px;
+        height: 239px;
+        width: 91%;
+    }
+</style>
 {% endblock %}
 
 {% block js %}
-    <script>
-        if (localStorage.getItem('cart') == null) {
-            var cart = {};
-        } else {
-            cart = JSON.parse(localStorage.getItem('cart'));
-        }
-        console.log(cart);
-        for (let item in cart) {
-            let id = item;
-            Id = id.slice(2)
-            let name = cart[item][0];
-            let qty = cart[item][1];
-            let desc = cart[item][3];
-            let image = cart[item][2];
-            let price = cart[item][4];
-            const mystr = document.createElement('div');
-            // if(name != undefined)
-            // {
-                mystr.innerHTML =
-                `
-                <div class="imgContainer">
-                    <div class="smallContainer1">
-                        <img height="200px" src="${image}" alt="kuchni">
-                        <a href="/home/cart/productCheckout/${Id}"><button class="btn btn-primary">Buy Now</button></a>
-                        <button class="btn btn-primary removeButton">Remove</button>
-                    </div>
-                </div>
-                <div class="smallContainer2">
-                    <h3>${name}</h3>
-                    <h3>${qty}</h3>
-                    <h5>${desc}</h5>
-                    <h4>${price}</h4>
-                </div>
-                `;
-            // }
-            document.getElementById('cartContainer').append(mystr);
+<script>
 
-            const removeBtn = mystr.querySelectorAll(".removeButton");
-            removeBtn.forEach(function(event){
-                event.addEventListener("click",function(){
-                    mystr.remove();
-                    delete cart[item];
-                    localStorage.setItem('cart',JSON.stringify(cart));
-                    document.getElementById('cart').innerHTML = Object.keys(cart).length;
-                })
-                
-            })
+    let cart_product_list = {{cart_product_list | safe}};
+    document.getElementById('cart').innerHTML = cart_product_list.length;
 
-            if(image == undefined && qty == undefined && desc == undefined && name == undefined && price == undefined){
-                mystr.remove();
-                delete cart[item];
-                localStorage.setItem('cart',JSON.stringify(cart));
+    var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    let btns = document.querySelectorAll('.remove');
+    btns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            let idstr = this.id.toString();
+            let quantity = null;
+            let image = null;
+            let name = null;
+            let price = null;
+            let desc = null;
+            JSONstring(idstr, quantity, image, name, price, desc);
+            location.reload();
+        })
+    })
+
+    function JSONstring(idstr, newQty, image, name, price, desc) {
+        let proCart = {};
+        proCart[idstr] = [
+            newQty,
+            image,
+            name,
+            price,
+            desc
+        ];
+
+        fetch('/home/cart', {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRFToken": csrfToken
+            },
+            body: JSON.stringify({ itemJson: proCart })
+        })
+    }
+
+    let chekOutBtn = document.getElementById('checkout');
+    chekOutBtn.addEventListener('click', function () {
+            console.log("clicked");
+            // let idee = this.id.toString();
+            // let idstr = idee.slice(3);
+            let requestBody = 1;
+            let formData = new FormData();
+            formData.append('requestBody', requestBody);
+            // formData.append('idstr', idstr);
+            fetch('/home/cart/checkout', {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": csrfToken
+                },
+                body: formData
+            });
+        });
+
+    let Qty_button = document.querySelectorAll('.qty');
+    Qty_button.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            let idstr2 = this.id.toString();
+            let idstr = idstr2.slice(3);
+            console.log(idstr2);
+            let qty = 1;
+
+            let newCartProdList = JSON.parse('{{newCartProdList | safe}}');
+
+            for (let i = 0; i < newCartProdList.length; i++) {
+                prod = newCartProdList[i];
+                if (idstr == prod.prodId) {
+                    qty = prod.qty;
+                    console.log("dekh ye hai nai quantity: ", prod.qty);
+                }
             }
-            document.getElementById('cart').innerHTML = Object.keys(cart).length;
-        }
-    </script>
+            console.log("dekh ye hai quantity: ", qty);
+
+
+            let image = btn.getAttribute('data-image');
+            let name = btn.getAttribute('data-product-name');
+            let price = btn.getAttribute('data-price');
+            let desc = btn.getAttribute('data-desc');
+
+            function manipulateQuantity(qty, idstr) {
+                console.log(idstr);
+                let idstr2 = idstr.slice(3);
+                console.log(idstr2);
+                let quantity = document.getElementById('div' + idstr2);
+                quantity.innerHTML = `
+                <button id="minus${idstr2}" class="btn btn-primary minus">-</button>
+                <span id="val${idstr2}">${qty}</span>
+                <button id="plus${idstr2}" class="btn btn-primary plus">+</button>
+            `;
+                let plusButton = document.getElementById('plus' + idstr2);
+                plusButton.addEventListener('click', function () {
+                    qty = qty + 1;
+                    JSONstring(idstr2, qty, image, name, price, desc);
+                    let qtyVal = document.getElementById('val' + idstr2);
+                    qtyVal.innerText = qty;
+                })
+                let minusButton = document.getElementById('minus' + idstr2);
+                minusButton.addEventListener('click', function () {
+                    if (qty > 1) {
+                        qty = qty - 1;
+                    } else {
+                        qty = 1;
+                    }
+                    JSONstring(idstr2, qty, image, name, price, desc);
+                    let qtyVal = document.getElementById('val' + idstr2);
+                    let realQty = Math.max(1, qty);
+                    qtyVal.innerText = realQty;
+                })
+            }
+
+            manipulateQuantity(qty, idstr2);
+        })
+    })
+
+</script>
 {% endblock %}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- // {% for product in cart_product_list %}
+// console.log(product.imageSrc)
+// {% endfor %}
+// if (localStorage.getItem('cart') == null) {
+// var cart = {};
+// } else {
+// cart = JSON.parse(localStorage.getItem('cart'));
+// }
+// console.log(cart);
+// for (let item in cart) {
+// let id = item;
+// Id = id.slice(2)
+// let name = cart[item][0];
+// let qty = cart[item][1];
+// let desc = cart[item][3];
+// let image = cart[item][2];
+// let price = cart[item][4];
+// const mystr = document.createElement('div');
+// // if(name != undefined)
+// // {
+// mystr.innerHTML =
+// `
+// <div class="imgContainer">
+    // <div class="smallContainer1">
+        // <img height="200px" src="${image}" alt="kuchni">
+        // <a href="/home/cart/productCheckout/${Id}"><button class="btn btn-primary">Buy Now</button></a>
+        // <button class="btn btn-primary removeButton">Remove</button>
+        // </div>
+    // </div>
+// <div class="smallContainer2">
+    // <h3>${name}</h3>
+    // <h3>${qty}</h3>
+    // <h5>${desc}</h5>
+    // <h4>${price}</h4>
+    // </div>
+// `;
+// // }
+// document.getElementById('cartContainer').append(mystr);
+
+// const removeBtn = mystr.querySelectorAll(".removeButton");
+// removeBtn.forEach(function(event){
+// event.addEventListener("click",function(){
+// mystr.remove();
+// delete cart[item];
+// localStorage.setItem('cart',JSON.stringify(cart));
+// document.getElementById('cart').innerHTML = Object.keys(cart).length;
+// })
+// })
+
+// if(image == undefined && qty == undefined && desc == undefined && name == undefined && price == undefined){
+// mystr.remove();
+// delete cart[item];
+// localStorage.setItem('cart',JSON.stringify(cart));
+// }
+// document.getElementById('cart').innerHTML = Object.keys(cart).length;
+// } -->

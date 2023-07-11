@@ -13,5 +13,6 @@ urlpatterns = [
     path('home/orders',views.orders,name="orders"),
     path('home/search',views.search,name="search"),
     path('home/cart/checkout',views.checkout,name="checkout"),
-    path('home/cart/productCheckout/<int:prodId>',views.productCheckout,name="productCheckout"),
+    # path('home/cart/productCheckout/<int:prodId>',views.productCheckout,name="productCheckout"),
+    # path('home/deletJson',views.deleteJson,name="deleteJson"),
 ]

@@ -1,6 +1,6 @@
 {% extends 'basic.html' %}
 {% block title %} Contact {% endblock %}
-{% block body%} 
+{% block body%}
 <!-- {% csrf_token %} -->
 
 <div class="container">
@@ -26,4 +26,11 @@
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 </div>
+{% endblock %}
+{% block js %}
+<script>
+    let prodList = JSON.parse('{{ prodList | safe }}');
+
+    document.getElementById('cart').innerHTML = prodList.length;
+</script>
 {% endblock %}

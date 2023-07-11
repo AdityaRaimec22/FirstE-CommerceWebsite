@@ -1,3 +1,4 @@
+import json
 from django.db import models
 
 class Product(models.Model):
@@ -47,6 +48,14 @@ class OrderUpdate(models.Model):
 
     def __str__(self):
         return self.update_desc[0:7] + "..."
+    
+class CartProd(models.Model):
 
+    itemJson = models.CharField(max_length=200,default="")
 
-# Create your models here.
+    def __str__(self):
+        data = json.loads(self.itemJson)
+        for key in data:
+            name = data[key][2]
+
+        return name

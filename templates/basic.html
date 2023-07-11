@@ -84,32 +84,7 @@
 
     {% block js %} 
     <script>
-      if(localStorage.getItem('cart')==null){
-        cart={};
-      } else {
-        cart = JSON.parse(localStorage.getItem('cart'));
-        document.getElementById('cart').innerText = Object.keys(cart).length;
-      }
 
-      const buttons = document.querySelectorAll('.btn');
-
-      buttons.forEach(function(button) {
-      button.addEventListener('click', function() {
-
-        let idstr = this.id.toString();
-        console.log(idstr);
-        if(cart[idstr] != undefined ) {
-          cart[idstr] = cart[idstr] + 1;
-        } else {
-          cart[idstr] = 1;
-        }
-        console.log(cart);
-
-        localStorage.setItem('cart',JSON.stringify(cart));
-
-        document.getElementById('cart').innerHTML = Object.keys(cart).length
-      });
-    });
     
     </script>
     {% endblock %}

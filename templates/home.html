@@ -123,6 +123,7 @@ width: 100%;
       <div class="carousel-item active">
 
         {% for i in product %}
+
         <div class="col-xs-3 col-sm-3 col-md-3">
           <div class="card" style="width: 18rem;">
             <img src='/media/{{i.image}}' id="imgpr{{i.id}}" class="card-img-top" alt="...">
@@ -130,7 +131,11 @@ width: 100%;
               <h5 class="card-title" id="namepr{{i.id}}">{{i.product_name}}</h5>
               <h5 class="card-title" id="pricepr{{i.id}}">{{i.price}}</h5>
               <p class="card-text" id="descpr{{i.id}}">{{i.desc|slice:"0:23"}}...</p>
-              <span id="divpr{{i.id}}"><button id="pr{{i.id}}" class="btn btn-primary Abtn">Add to cart</button></span>
+              <span id="divpr{{i.id}}">{% csrf_token %}<button id="pr{{i.id}}" class="btn btn-primary Abtn"
+                  data-product-name="{{i.product_name}}" data-image="/media/{{i.image}}" data-price="{{i.price}}"
+                  data-description="{{i.desc}}">Add to
+                  cart</button>
+              </span>
               <a href="/home/products/{{i.id}}"><button id="qv{{i.id}}" class="btn btn-primary">Quick View</button></a>
             </div>
           </div>
@@ -159,104 +164,56 @@ width: 100%;
 
 {% block js %}
 <script>
-  if (localStorage.getItem('cart') == null) {
-    var cart = {};
-  } else {
-    cart = JSON.parse(localStorage.getItem('cart'));
-    // document.getElementById('cart').innerText = Object.keys(cart).length;
-    updateCart(cart);
-    // console.log(cart);
-  }
-  const buttons = document.querySelectorAll('.Abtn');
-  buttons.forEach(function (button) {
-    button.addEventListener('click', function () {
+  var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+  const button = document.querySelectorAll('.Abtn');
+  button.forEach(function (btn) {
+    btn.addEventListener('click', function () {
       let idstr = this.id.toString();
-      // console.log('clicked')
-      // console.log(idstr)
+      let qty = 1;
 
-      if (cart[idstr] != undefined) {
-        qty = cart[idstr] + 1;
-      } else if (price != undefined && imgsrc != undefined && name != undefined && qty != undefined && desc != undefined) {
-        price = document.getElementById('price' + idstr).innerHTML;
-        img = document.getElementById('img' + idstr)
-        imgsrc = img.src;
-        name = document.getElementById('name' + idstr).innerHTML
-        qty = 1;
-        desc = document.getElementById('desc' + idstr).innerHTML
-        cart[idstr] = [qty, name, imgsrc, desc, price];
-      }
+      var proCart = {};
+      proCart[idstr] = [
+        qty,
+        "http://127.0.0.1:8000" + btn.getAttribute('data-image'),
+        btn.getAttribute('data-product-name'),
+        btn.getAttribute('data-price'),
+        btn.getAttribute('data-description')
+      ];
 
-      updateCart(cart);
-    });
-  });
+      fetch('/home/cart', {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrfToken
+        },
+        body: JSON.stringify({ itemJson: proCart })
+      })
+      const Add_to_cart_Btn = document.getElementById('div' + idstr);
+      Add_to_cart_Btn.innerHTML = `<a href="home/cart"><button class="btn btn-primary">Go To Cart</button></a>`;
 
-  function updateCart(cart) {
-    let sum = 0;
-    for (let item in cart) {
-      sum += cart[item][0];
-      let cartItem = document.getElementById('div' + item);
-      if (cart[item][0] === 0) {
-        // Remove item from the cart and update localStorage
-        delete cart[item];
-        localStorage.setItem('cart', JSON.stringify(cart));
-        // Display the "Add to Cart" button
-        cartItem.innerHTML = `<button id="${item}" class="btn btn-primary Abtn">Add to cart</button>`;
-      } else {
-        // Display the plus, minus buttons and item value
-        try {
-          cartItem.innerHTML = `
-        <button id="minus${item}" class="btn btn-primary minus">-</button>
-        <span id="val${item}">${cart[item][0]}</span>
-        <button id="plus${item}" class="btn btn-primary plus">+</button>
-      `;
-        } catch (error) {
+    })
+  })
 
-        }
-      }
+  const Go_To_Cart = document.querySelectorAll('.Abtn');
+  Go_To_Cart.forEach(function (btn) {
+  let idstr = btn.id.toString();  // Use btn.id instead of this.id
+  const Add_to_cart_Btn = document.getElementById('div' + idstr);
+
+  let prodList = JSON.parse('{{ prodList | safe }}');
+
+  document.getElementById('cart').innerHTML = prodList.length;
+
+  for (let i = 0; i < prodList.length; i++) {
+    let prod = prodList[i];
+
+    let prodId = prod.prodId;
+
+    if (idstr === prodId) {
+      Add_to_cart_Btn.innerHTML = `<a href="home/cart"><button class="btn btn-primary">Go To Cart</button></a>`;
     }
-    localStorage.setItem('cart', JSON.stringify(cart));
-    document.getElementById('cart').innerHTML = Object.keys(cart).length;
-    const buttons = document.querySelectorAll('.Abtn');
-    buttons.forEach(function (button) {
-      button.addEventListener('click', function () {
-        let idstr = this.id.toString();
-
-        if (cart[idstr] != undefined) {
-          qty = cart[idstr] + 1;
-        } else {
-          price = document.getElementById('price' + idstr).innerHTML;
-          img = document.getElementById('img' + idstr);
-          imgsrc = img.src;
-          name = document.getElementById('name' + idstr).innerHTML;
-          qty = 1;
-          desc = document.getElementById('desc' + idstr).innerHTML;
-          cart[idstr] = [qty, name, imgsrc, desc, price];
-        }
-
-        updateCart(cart);
-      });
-    });
   }
-
-
-  document.addEventListener('click', function (event) {
-
-    if (event.target.classList.contains('plus')) {
-      // Plus button clicked
-      a = event.target.id.slice(6);
-      cart['pr' + a][0] = cart['pr' + a][0] + 1;
-      document.getElementById('valpr' + a).innerText = cart['pr' + a][0];
-      updateCart(cart);
-
-    } else if (event.target.classList.contains('minus')) {
-      // Minus button clicked
-      a = event.target.id.slice(7);
-      cart['pr' + a][0] = cart['pr' + a][0] - 1;
-      cart['pr' + a][0] = Math.max(0, cart['pr' + a][0]);
-      document.getElementById('valpr' + a).innerText = cart['pr' + a][0];
-      updateCart(cart);
-    }
-  });
+});
 
 </script>
 {% endblock %}

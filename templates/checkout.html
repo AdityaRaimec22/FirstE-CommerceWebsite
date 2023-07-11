@@ -2,13 +2,33 @@
 {% block title%} Checkout - My Awesome Cart{% endblock %}
 {% block body %}
 <div class="container">
-    <div class="col my-4">
-        <h2>Step 1 - My Awesome Cart Express Checkout - Review Your Cart Items</h2>
-        <div class="my-4">
-            <ul class="list-group" id="items">
-            </ul>
-        </div>
+    {% if firstBool == True and secondBool == False %}
+    {% for product in cart_product_list %}
+    <div class="container1">
+        <li>
+            <img height="200px" class="image" width="200px" src="{{ product.image_src }}" alt="Product Image">
+            <p>{{ product.desc }}</p>
+            <p>{{ product.name }}</p>
+            <p>{{ product.qty }}</p>
+            <p>{{ product.prodId }}</p>
+        </li>
     </div>
+    {% endfor %}
+    {% elif firstBool == False and secondBool == True %}
+    {% for product in new_cart_product_list %}
+    <div class="container1">
+        <li>
+            <img height="200px" class="image" width="200px" src="{{ product.image_src }}" alt="Product Image">
+            <p>{{ product.desc }}</p>
+            <p>{{ product.name }}</p>
+            <p>{{ product.qty }}</p>
+            <!-- <p>{{ product.prodId }}</p> -->
+        </li>
+    </div>
+    {% endfor %}
+    {% else %}
+    <p>I entered inside else</p>
+    {% endif %}
     <div class="col my-4">
         <h2>Step 2 - Enter Address & Other Details:</h2>
         <form method="post" action="/home/cart/checkout">{% csrf_token %}
@@ -29,7 +49,8 @@
             </div>
             <div class="form-group">
                 <label for="inputAddress2">Address line 2</label>
-                <input type="text" class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor" name="address2">
+                <input type="text" class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor"
+                    name="address2">
             </div>
             <div class="form-row">
                 <div class="form-group col-md-6">
@@ -49,49 +70,75 @@
                 <label for="inputZip">Phone Number</label>
                 <input type="tel" class="form-control" id="inputPhone" name="phone_number">
             </div>
-            <button type="submit" class="btn btn-primary">Place Order</button>
+            <button type="submit" class="btn btn-primary" id="checkoutBtn">Place Order</button>
         </form>
     </div>
 </div>
 {% endblock %}
 {% block js %}
 <script>
-if (localStorage.getItem('cart') == null) {
-    var cart = {};
-} else {
-    cart = JSON.parse(localStorage.getItem('cart'));
-}
-var sum = 0;
-if ($.isEmptyObject(cart)) {
-    //if Cart is empty
-    mystr = `<p>Your cart is empty, please add some items to your cart before checking out!</p>`
-    $('#items').append(mystr);
-} else {
-    let total = 0;
-    for (let item in cart) {
-        let name = cart[item][1];
-        let qty = cart[item][0];
-        total += cart[item][4]*qty;
-        sum = sum + qty;
-        mystr = `<li class="list-group-item d-flex justify-content-between align-items-center">
-                    ${name}
-                    <span class="badge badge-primary badge-pill">${qty}</span>
-                </li>`
-        $('#items').append(mystr);
-    }
-    newStr = `
-        <li class="list-group-item d-flex justify-content-between align-items-center">
-            The total of your cart item is 
-            <span class="badge badge-primary badge-pill">Rs. ${total}</span>
-        </li>`
-        $('#items').append(newStr);
-}
-document.getElementById('cart').innerHTML = sum;
 
-$('#itemJson').val(JSON.stringify(cart));
-{% if thank %}
-alert("Thanks for ordering with us. Your order id is {{id}}. Use it to track your order using our order tracker")
-document.location="/home";
-{%endif%}
+    var firstBool = {{ firstBool|lower }};
+    var secondBool = {{ secondBool|lower }};
+
+    if (firstBool) {
+        let cart_product_list = {{ cart_product_list | safe }};
+        let orderCart = {};
+        for (let i = 0; i < cart_product_list.length; i++){
+            let prod = cart_product_list[i];
+            let idstr = prod.prodId;
+            let qty = prod.qty;
+            let img = prod.image_src;
+            let name = prod.name;
+            let price = prod.price;
+            let desc = prod.desc;
+
+            
+            orderCart[idstr] = [
+                qty,
+                name,
+                img,
+                desc,
+                price,
+                idstr
+            ]
+        }
+        console.log(JSON.stringify(orderCart));
+        console.log("Hii");
+        document.getElementById('itemJson').value = JSON.stringify(orderCart);
+        // document.location="/home";
+    } else {
+        let new_cart_product_list = {{ new_cart_product_list | safe }};
+        let new_orderCart = {};
+
+        // let cart_product_list = {{ cart_product_list | safe }};
+        for (let i = 0; i < new_cart_product_list.length; i++){
+            let prod = new_cart_product_list[i];
+            let idstr = prod.product_Id;
+            let qty = prod.qty;
+            let img = prod.image_src;
+            let name = prod.name;
+            let price = prod.price;
+            let desc = prod.desc;
+
+            
+            new_orderCart[idstr] = [
+                qty,
+                name,
+                img,
+                desc,
+                price,
+                idstr
+            ]
+        }
+        document.getElementById('itemJson').value = JSON.stringify(new_orderCart);
+        // document.location="/home"
+    }
+
+    let checkoutBtn = document.getElementById('checkoutBtn');
+    checkoutBtn.addEventListener('click',function(){
+        document.location = "/home";
+        alert("your order placed successfully!! Kindly visit the orders page for more Info. Thanks");
+    })
 </script>
 {% endblock %}

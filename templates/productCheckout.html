@@ -68,10 +68,11 @@
 </div>
 
 <script>
+
     var productDetails = {
         '':
             [
-                document.getElementById('productqty').value,
+                document.getElementById('productqty').value+1,
                 document.getElementById('productName').value,
                 "http://127.0.0.1:8000/media/" + document.getElementById('productImage').value,
                 document.getElementById('productDesc').value,
@@ -79,7 +80,7 @@
             ]
     };
     document.getElementById('itemJson').value = JSON.stringify(productDetails);
-    $('#itemJson').val(JSON.stringify(cart));
+    // $('#itemJson').val(JSON.stringify(cart));
 
 </script>
 
