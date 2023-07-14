@@ -14,3 +14,5 @@ After that the project will get launched `ctrl+click` on the link generated or p
 
 The site will start working.
 
+for logging In the test username: `ar` and password: `ar`
+
