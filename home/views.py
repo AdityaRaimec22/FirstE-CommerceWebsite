@@ -1,34 +1,40 @@
+from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, HttpResponse, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.contrib.auth import authenticate, login
+from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import check_password
+from django.urls import reverse
 from . models import Product, Contact, Order, OrderUpdate, CartProd
+from django.contrib.auth.decorators import login_required
 from math import ceil
 import json
 
 def signin(request):
-
+    fname = ''
     if request.method == "POST":
         username = request.POST['username']
-        pass1 = request.POST['pass1']
+        password = request.POST['pass1']
 
-        user = authenticate(username=username,password=pass1)
+        user = authenticate(username=username, password=password)
 
-        if user is not None:
-            login(request,user)
+        if user is not None and check_password(password, user.password):
+            login(request, user)
             fname = user.first_name
-            messages.success(request,"you ae logged in successfully")
-            # return render(request,"home.html",{'fname':fname})
-            return redirect('home')
 
+            # Store fname value in session
+            request.session['fname'] = fname
+
+            print("the first name of the user is:",fname)
+            messages.success(request, "You are logged in successfully")
+            return redirect('home')
         else:
-            messages.error(request,"Bad Credentials")
+            messages.error(request, "Bad Credentials")
             return redirect('signin')
 
+    return render(request, 'signin.html', {'fname': fname})
 
-    return render(request, 'signin.html')
-
+# @login_required(login_url="/signin")
 def signup(request):
     if request.method == "POST":
         username = request.POST['username']
@@ -50,15 +56,20 @@ def signup(request):
 
     return render(request, 'signup.html')
 
+def userLogout(request):
+    logout(request)
+    messages.success(request,"Logged Out Successfully")
+    return redirect('home')
+
 def home(request):
     allProds = []
-    catProds = Product.objects.values('category','id')
+    catProds = Product.objects.values('category', 'id')
     cats = {item['category'] for item in catProds}
     for cat in cats:
-        prod = Product.objects.filter(category = cat)
+        prod = Product.objects.filter(category=cat)
         n = len(prod)
-        nSlides = n//4 + ceil((n/4) - (n//4))
-        allProds.append([prod, range(1,nSlides), nSlides])
+        nSlides = n // 4 + ceil((n / 4) - (n // 4))
+        allProds.append([prod, range(1, nSlides), nSlides])
 
     prodList = []
     items_In_cartProd = CartProd.objects.all()
@@ -67,15 +78,17 @@ def home(request):
 
         if itemJson:
             data = json.loads(itemJson)
-
         else:
             data = {}
 
         for key in data:
             prodId = key
-            prodList.append({"prodId":prodId}) 
+            prodList.append({"prodId": prodId})
 
-    return render(request,'home.html',{'prodList':json.dumps(prodList),'allprods':allProds})
+    # Retrieve fname from session
+    fname = request.session.get('fname')
+
+    return render(request, 'home.html', {'prodList': json.dumps(prodList), 'allprods': allProds, 'fname': fname})
 
 def searchMatch(query , item):
     if query in item.product_name.lower() or query in item.desc.lower() or query in item.category.lower():
@@ -107,8 +120,10 @@ def search(request):
         for key in data:
             prodId = key
             prodList.append({"prodId":prodId})
+
+    fname = request.session.get('fname')
             
-    params = {'prods':prods,'prodList':json.dumps(prodList)}
+    params = {'prods':prods,'prodList':json.dumps(prodList),'fname':fname}
 
     return render(request,'search.html',params)
 
@@ -117,6 +132,8 @@ def products(request,myid):
     product = Product.objects.filter(id=myid)
     prodList = []
     items_In_cartProd = CartProd.objects.all()
+    if request.path == reverse('home'):
+        return HttpResponseRedirect(reverse('home'))
     for item in items_In_cartProd:
         itemJson = item.itemJson.strip()
 
@@ -129,8 +146,11 @@ def products(request,myid):
         for key in data:
             prodId = key
             prodList.append({"prodId":prodId})
-    return render(request,'products.html',{'product':product[0], 'prodList':json.dumps(prodList)})
 
+    fname = request.session.get('fname')
+    return render(request,'products.html',{'product':product[0], 'prodList':json.dumps(prodList),'fname':fname})
+
+@login_required(login_url="/signin")
 def contact(request):
     if request.method == "POST":
         name = request.POST.get('name','')
@@ -154,8 +174,11 @@ def contact(request):
         for key in data:
             prodId = key
             prodList.append({"prodId":prodId})
-    return render(request,'contact.html',{'prodList':json.dumps(prodList)})
 
+    fname = request.session.get('fname')
+    return render(request,'contact.html',{'prodList':json.dumps(prodList),'fname':fname})
+
+@login_required(login_url="/signin")
 def checkout(request):
 
     cart_product_list = []
@@ -253,8 +276,10 @@ def checkout(request):
     cart_product_list = request.session.get('cart_product_list', [])
     new_cart_product_list = request.session.get('new_cart_product_list',[])
     bool_storer = request.session.get('bool_storer',[])
-    return render(request,'checkout.html',{"firstBool":bool_storer[0],"secondBool":bool_storer[1],"cart_product_list":cart_product_list,"new_cart_product_list":new_cart_product_list})
+    fname = request.session.get('fname')
+    return render(request,'checkout.html',{"firstBool":bool_storer[0],"secondBool":bool_storer[1],"cart_product_list":cart_product_list,"new_cart_product_list":new_cart_product_list,"fname":fname})
 
+@login_required(login_url="/signin")
 def orders(request):
     orders = Order.objects.all()
     orderUpd = OrderUpdate.objects.all()
@@ -299,9 +324,10 @@ def orders(request):
             quantity = product_key[0]
             product_list.append({'image_src': imageSrc, 'desc': description, 'price': price, 'name': name, 'qty': quantity,'prodDesc':prodDesc, 'Time':Time})
 
-    return render(request, 'Orders.html', {'product_list': product_list,'prodList':json.dumps(prodList)})
+    fname = request.session.get('fname')
+    return render(request, 'Orders.html', {'product_list': product_list,'prodList':json.dumps(prodList),'fname':fname})
 
-
+@login_required(login_url="/signin")
 def cart(request):
 
     new_prodId = ''
@@ -403,4 +429,6 @@ def cart(request):
                 if new_prodId == prodId:
                     existing_prods.delete()
 
-    return render(request,'cart.html',{'cart_product_list':cart_product_list,'newCartProdList':json.dumps(cart_product_list)})
+    fname = request.session.get('fname')
+
+    return render(request,'cart.html',{'cart_product_list':cart_product_list,'newCartProdList':json.dumps(cart_product_list),'fname':fname})

@@ -77,7 +77,7 @@
             let desc = btn.getAttribute('data-description');
             AddToCart(idstr, image, name, price, desc);
             let ChangeBtn = document.getElementById('div' + idstr);
-            ChangeBtn.innerHTML = `<a href="home/cart"><button class="btn btn-primary">Go To Cart</button></a>`;
+            ChangeBtn.innerHTML = `<a href="/home/cart"><button class="btn btn-primary">Go To Cart</button></a>`;
         })
     })
 
@@ -105,7 +105,7 @@
     const Go_To_Cart = document.querySelectorAll('.Abtn');
     Go_To_Cart.forEach(function (btn) {
         let idstr = btn.id.toString();  // Use btn.id instead of this.id
-        const Add_to_cart_Btn = document.getElementById('div' + idstr);
+        let Add_to_cart_Btn = document.getElementById('div' + idstr);
 
         let prodList = JSON.parse('{{ prodList | safe }}');
 
@@ -117,7 +117,7 @@
             let prodId = prod.prodId;
 
             if (idstr === prodId) {
-                Add_to_cart_Btn.innerHTML = `<a href="home/cart"><button class="btn btn-primary">Go To Cart</button></a>`;
+                Add_to_cart_Btn.innerHTML = `<a href="/home/cart"><button class="btn btn-primary">Go To Cart</button></a>`;
             }
         }
     });
