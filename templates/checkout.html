@@ -1,6 +1,7 @@
 {% extends 'basic.html' %}
 {% block title%} Checkout - My Awesome Cart{% endblock %}
 {% block body %}
+{% if user.is_authenticated %}
 <div class="container">
     {% if firstBool == True and secondBool == False %}
     {% for product in cart_product_list %}
@@ -14,21 +15,6 @@
         </li>
     </div>
     {% endfor %}
-    {% elif firstBool == False and secondBool == True %}
-    {% for product in new_cart_product_list %}
-    <div class="container1">
-        <li>
-            <img height="200px" class="image" width="200px" src="{{ product.image_src }}" alt="Product Image">
-            <p>{{ product.desc }}</p>
-            <p>{{ product.name }}</p>
-            <p>{{ product.qty }}</p>
-            <!-- <p>{{ product.prodId }}</p> -->
-        </li>
-    </div>
-    {% endfor %}
-    {% else %}
-    <p>I entered inside else</p>
-    {% endif %}
     <div class="col my-4">
         <h2>Step 2 - Enter Address & Other Details:</h2>
         <form method="post" action="/home/cart/checkout">{% csrf_token %}
@@ -73,13 +59,79 @@
             <button type="submit" class="btn btn-primary" id="checkoutBtn">Place Order</button>
         </form>
     </div>
+    
+    {% elif firstBool == False and secondBool == True %}
+    {% for product in new_cart_product_list %}
+    <div class="container1">
+        <li>
+            <img height="200px" class="image" width="200px" src="{{ product.image_src }}" alt="Product Image">
+            <p>{{ product.desc }}</p>
+            <p>{{ product.name }}</p>
+            <p>{{ product.qty }}</p>
+            <!-- <p>{{ product.prodId }}</p> -->
+        </li>
+    </div>
+    <div class="col my-4">
+        <h2>Step 2 - Enter Address & Other Details:</h2>
+        <form method="post" action="/home/cart/checkout">{% csrf_token %}
+            <input type="hidden" name="itemJson" id="itemJson">
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="inputname">Name</label>
+                    <input type="name" class="form-control" id="inputname" placeholder="Name" name="name">
+                </div>
+                <div class="form-group col-md-6">
+                    <label for="inputEmail4">Email</label>
+                    <input type="email" class="form-control" id="inputEmail4" placeholder="Email" name="email">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputAddress">Address</label>
+                <input type="text" class="form-control" id="inputAddress" placeholder="1234 Main St" name="address1">
+            </div>
+            <div class="form-group">
+                <label for="inputAddress2">Address line 2</label>
+                <input type="text" class="form-control" id="inputAddress2" placeholder="Apartment, studio, or floor"
+                    name="address2">
+            </div>
+            <div class="form-row">
+                <div class="form-group col-md-6">
+                    <label for="inputCity">City</label>
+                    <input type="text" class="form-control" id="inputCity" name="city">
+                </div>
+                <div class="form-group col-md-4">
+                    <label for="inputState">State</label>
+                    <input type="text" class="form-control" id="inputAddress2" placeholder="Enter State" name="state">
+                </div>
+                <div class="form-group col-md-2">
+                    <label for="inputZip">Zip</label>
+                    <input type="text" class="form-control" id="inputZip" name="zip_code">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="inputZip">Phone Number</label>
+                <input type="tel" class="form-control" id="inputPhone" name="phone_number">
+            </div>
+            <button type="submit" class="btn btn-primary" id="checkoutBtn">Place Order</button>
+        </form>
+    </div>
+    {% endfor %}
+    {% else %}
+    <h5>Your order has been placed successfully!! For More Information of Order navigate to <a href="/home/orders">Orders</a> Page. <br>Continue Shopping click <a href="/">Here</a></h5>
+    {% endif %}
+
 </div>
+{% endif %}
 {% endblock %}
 {% block js %}
 <script>
 
     var firstBool = {{ firstBool|lower }};
     var secondBool = {{ secondBool|lower }};
+
+    let cart_product_list = {{ cart_product_list | safe }};
+    document.getElementById('cart').innerHTML = cart_product_list.length;
+    // location.reload();
 
     if (firstBool) {
         let cart_product_list = {{ cart_product_list | safe }};
@@ -106,6 +158,10 @@
         // console.log(JSON.stringify(orderCart));
         // console.log("Hii");
         document.getElementById('itemJson').value = JSON.stringify(orderCart);
+        console.log(JSON.stringify(orderCart));
+        // let prodList = JSON.parse('{{ cart_product_list | safe }}');
+
+        
         // document.location="/home";
     } else {
         let new_cart_product_list = {{ new_cart_product_list | safe }};
@@ -132,13 +188,18 @@
             ]
         }
         document.getElementById('itemJson').value = JSON.stringify(new_orderCart);
+        console.log(new_orderCart);
+
+        // let new_prodList = JSON.parse('{{ new_cart_product_list | safe }}');
+
+        // document.getElementById('cart').innerHTML = new_cart_product_list.length;
         // document.location="/home"
     }
 
-    let checkoutBtn = document.getElementById('checkoutBtn');
-    checkoutBtn.addEventListener('click',function(){
-        document.location = "/home";
-        alert("your order placed successfully!! Kindly visit the orders page for more Info. Thanks");
-    })
+    // let checkoutBtn = document.getElementById('checkoutBtn');
+    // checkoutBtn.addEventListener('click',function(){
+    //     document.location = "/";
+    //     alert("your order placed successfully!! Kindly visit the orders page for more Info. Thanks");
+    // })
 </script>
 {% endblock %}

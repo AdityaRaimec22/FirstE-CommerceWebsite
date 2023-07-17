@@ -1,5 +1,7 @@
 import json
 from django.db import models
+from django.contrib.auth.models import User
+
 
 class Product(models.Model):
     product_id = models.AutoField
@@ -27,6 +29,7 @@ class Contact(models.Model):
         return self.name
     
 class Order(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     itemJson= models.CharField(max_length=5000,default="")
     order_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=30)
@@ -41,6 +44,7 @@ class Order(models.Model):
         return self.name
     
 class OrderUpdate(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     update_Id = models.AutoField(primary_key=True)
     order_id = models.IntegerField(default=0)
     update_desc = models.CharField(max_length=5000)
@@ -51,6 +55,7 @@ class OrderUpdate(models.Model):
     
 class CartProd(models.Model):
 
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     itemJson = models.CharField(max_length=200,default="")
 
     def __str__(self):

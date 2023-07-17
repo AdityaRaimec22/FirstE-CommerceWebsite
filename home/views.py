@@ -62,6 +62,9 @@ def userLogout(request):
     return redirect('home')
 
 def home(request):
+
+    user = request.user
+
     allProds = []
     catProds = Product.objects.values('category', 'id')
     cats = {item['category'] for item in catProds}
@@ -72,7 +75,10 @@ def home(request):
         allProds.append([prod, range(1, nSlides), nSlides])
 
     prodList = []
-    items_In_cartProd = CartProd.objects.all()
+    try:
+        items_In_cartProd = CartProd.objects.filter(user=user)
+    except:
+        items_In_cartProd = CartProd.objects.all()
     for item in items_In_cartProd:
         itemJson = item.itemJson.strip()
 
@@ -97,6 +103,9 @@ def searchMatch(query , item):
         return False
         
 def search(request):
+
+    user = request.user
+
     query = request.GET.get('search')
     prods = []
     catProds = Product.objects.values('category','id')
@@ -107,7 +116,7 @@ def search(request):
         prods.append(prod)
 
     prodList = []
-    items_In_cartProd = CartProd.objects.all()
+    items_In_cartProd = CartProd.objects.filter(user=user)
     for item in items_In_cartProd:
         itemJson = item.itemJson.strip()
 
@@ -129,9 +138,11 @@ def search(request):
 
 def products(request,myid):
 
+    user = request.user
+
     product = Product.objects.filter(id=myid)
     prodList = []
-    items_In_cartProd = CartProd.objects.all()
+    items_In_cartProd = CartProd.objects.filter(user=user)
     if request.path == reverse('home'):
         return HttpResponseRedirect(reverse('home'))
     for item in items_In_cartProd:
@@ -152,6 +163,9 @@ def products(request,myid):
 
 @login_required(login_url="/signin")
 def contact(request):
+
+    user = request.user
+
     if request.method == "POST":
         name = request.POST.get('name','')
         email = request.POST.get('email','')
@@ -161,7 +175,7 @@ def contact(request):
         contact.save()
 
     prodList = []
-    items_In_cartProd = CartProd.objects.all()
+    items_In_cartProd = CartProd.objects.filter(user=user)
     for item in items_In_cartProd:
         itemJson = item.itemJson.strip()
 
@@ -181,16 +195,26 @@ def contact(request):
 @login_required(login_url="/signin")
 def checkout(request):
 
-    cart_product_list = []
-    new_cart_product_list = []
-    bool_storer = []
-    idstr = ''
+    user = request.user
+
+    # cart_product_list = []
+    # new_cart_product_list = []
+    # bool_storer = []
+    # idstr = ''
     if request.method == "POST":
+        
+        # user = request.user
+
+        cart_product_list = []
+        new_cart_product_list = []
+        bool_storer = []
+        idstr = ''
 
         data = request.POST.get('requestBody')
         idstr = request.POST.get('idstr')
-        prodCart = CartProd.objects.all()
+        prodCart = CartProd.objects.filter(user=user)
         if data == '1':
+            print("request made from cart")
 
             request.session['bool_storer'] = bool_storer
             bool_storer.append(True)
@@ -198,6 +222,7 @@ def checkout(request):
             
 
             if len(prodCart) != 0:
+                print("cart ki length 0 se jyada hai")
 
                 request.session['cart_product_list'] = cart_product_list  
 
@@ -208,22 +233,32 @@ def checkout(request):
                     if item_json:
                         try:
                             data = json.loads(item_json)
+                            print("Bhai sb shi hai")
                         except json.JSONDecodeError as e:
+                            print("error is:",e)
                             data = {}
                     else:
+                        print("Are me execute ho gya aur json string load hi nhi ho payi.")
                         data = {}
 
                     for key in data:
-                        prodId = key
-                        product_key = tuple(data[key])
-                        imageSrc = product_key[1]
-                        description = product_key[4]
-                        price = product_key[3]
-                        name = product_key[2]
-                        quantity = product_key[0]
-                        cart_product_list.append({'image_src': imageSrc, 'desc': description, 'price': price, 'name': name, 'qty': quantity,'prodId':prodId})
+                        try:
+                            print("try statement executed")
+                            prodId = key
+                            product_key = tuple(data[key])
+                            imageSrc = product_key[1]
+                            description = product_key[4]
+                            price = product_key[3]
+                            name = product_key[2]
+                            quantity = product_key[0]
+                            # print(imageSrc,description,price,name,quantity)
+                            cart_product_list.append({'image_src': imageSrc, 'desc': description, 'price': price, 'name': name, 'qty': quantity,'prodId':prodId})
+                        except:
+                            print("except statement executed")
+                            pass
 
         elif data == '2':
+            print("request made from products page")
 
             request.session['bool_storer'] = bool_storer
             bool_storer.append(False)
@@ -246,46 +281,55 @@ def checkout(request):
                     for key in data:
                         # prodId = key
                         if key == idstr:
-                            product_Id = key
-                            product_key = tuple(data[key])
-                            imageSrc = product_key[1]
-                            description = product_key[4]
-                            price = product_key[3]
-                            name = product_key[2]
-                            quantity = product_key[0]
-                            new_cart_product_list.append({'image_src': imageSrc, 'desc': description, 'price': price, 'name': name, 'qty': quantity,'product_Id':product_Id})
+                            try:
+                                product_Id = key
+                                product_key = tuple(data[key])
+                                imageSrc = product_key[1]
+                                description = product_key[4]
+                                price = product_key[3]
+                                name = product_key[2]
+                                quantity = product_key[0]
+                                new_cart_product_list.append({'image_src': imageSrc, 'desc': description, 'price': price, 'name': name, 'qty': quantity,'product_Id':product_Id})
+                            except:
+                                pass
         
         else:
 
-            itemJson = request.POST['itemJson']
-            name = request.POST['name']
-            email = request.POST['email']
-            address = request.POST['address1'] + " " + request.POST['address2']
-            city = request.POST['city']
-            state = request.POST['state']
-            phone_number = request.POST['phone_number']
-            zip_code = request.POST['zip_code']
+            itemJson = request.POST.get('itemJson','')
+            name = request.POST.get('name','')
+            email = request.POST.get('email','')
+            address = request.POST.get('address1','') + " " + request.POST.get('address2','')
+            city = request.POST.get('city','')
+            state = request.POST.get('state','')
+            phone_number = request.POST.get('phone_number','')
+            zip_code = request.POST.get('zip_code','')
 
-            userOrder = Order(itemJson=itemJson,name=name,email=email,address=address,city=city,state=state,phone_number=phone_number,zip_code=zip_code)
+            userOrder = Order(user=user,itemJson=itemJson,name=name,email=email,address=address,city=city,state=state,phone_number=phone_number,zip_code=zip_code)
 
             userOrder.save()
-            update = OrderUpdate(order_id = userOrder.order_id, update_desc = "The Order has been Placed.")
+            update = OrderUpdate(user=user,order_id = userOrder.order_id, update_desc = "The Order has been Placed.")
             update.save()
             return render(request,'checkout.html')
         
+    
     cart_product_list = request.session.get('cart_product_list', [])
     new_cart_product_list = request.session.get('new_cart_product_list',[])
+
     bool_storer = request.session.get('bool_storer',[])
+
     fname = request.session.get('fname')
-    return render(request,'checkout.html',{"firstBool":bool_storer[0],"secondBool":bool_storer[1],"cart_product_list":cart_product_list,"new_cart_product_list":new_cart_product_list,"fname":fname})
+    return render(request,'checkout.html',{"firstBool":bool_storer[0] if bool_storer else True,"secondBool":bool_storer[1] if bool_storer else False,"cart_product_list":cart_product_list,"new_cart_product_list":new_cart_product_list,"fname":fname})
 
 @login_required(login_url="/signin")
 def orders(request):
-    orders = Order.objects.all()
-    orderUpd = OrderUpdate.objects.all()
+
+    user = request.user
+
+    orders = Order.objects.filter(user=user)
+    orderUpd = OrderUpdate.objects.filter(user=user)
 
     prodList = []
-    items_In_cartProd = CartProd.objects.all()
+    items_In_cartProd = CartProd.objects.filter(user=user)
     for item in items_In_cartProd:
         itemJson = item.itemJson.strip()
 
@@ -330,11 +374,14 @@ def orders(request):
 @login_required(login_url="/signin")
 def cart(request):
 
+    user = request.user
+
     new_prodId = ''
     prodId = ''
     prods = ''
     existing_prods = ''
-    prodCart = CartProd.objects.all()
+    prodCart = CartProd.objects.filter(user=user)
+    # prodCart = CartProd.objects.all()
 
     if len(prodCart) != 0:
 
@@ -378,10 +425,10 @@ def cart(request):
             new_name = new_data[new_key][2]
 
         if new_name != None:    
-            prodInCart = CartProd(itemJson=newJson)
+            prodInCart = CartProd(user=user, itemJson=newJson)
             prodInCart.save()
 
-    new_prodCart = CartProd.objects.all()
+    new_prodCart = CartProd.objects.filter(user = user)
 
     cart_product_list = []
 

@@ -3,9 +3,9 @@
 {% block title %}Cart - My Awesome Cart{% endblock %}
 {% block body %}
 <h2>These are the items in your Cart</h2>
-<a href="/home/cart/checkout">
-    <button class="btn btn-primary" id="checkout" href="/home/cart/checkout" style="margin: 20px;">Check-Out</button>
-</a>
+<!-- <a href="/home/cart/checkout"> -->
+<button class="btn btn-primary" id="checkout" style="margin: 20px;">Check-Out</button>
+<!-- </a> -->
 {% for product in cart_product_list %}
 <div class="container1">
     <li>
@@ -61,7 +61,7 @@
 
 <script>
 
-    let cart_product_list = {{cart_product_list | safe}};
+    let cart_product_list = {{ cart_product_list | safe}};
     document.getElementById('cart').innerHTML = cart_product_list.length;
 
     var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
@@ -75,7 +75,7 @@
             let price = null;
             let desc = null;
             JSONstring(idstr, quantity, image, name, price, desc);
-            location.reload();
+            // location.reload();
         })
     })
 
@@ -101,21 +101,35 @@
 
     let chekOutBtn = document.getElementById('checkout');
     chekOutBtn.addEventListener('click', function () {
-            console.log("clicked");
-            // let idee = this.id.toString();
-            // let idstr = idee.slice(3);
-            let requestBody = 1;
-            let formData = new FormData();
-            formData.append('requestBody', requestBody);
-            // formData.append('idstr', idstr);
-            fetch('/home/cart/checkout', {
-                method: "POST",
-                headers: {
-                    "X-CSRFToken": csrfToken
-                },
-                body: formData
+        // console.log("clicked");
+
+        // let idee = this.id.toString();
+        // let idstr = idee.slice(3);
+        let requestBody = 1;
+        let formData = new FormData();
+        formData.append('requestBody', requestBody);
+        // formData.append('idstr', idstr);
+        fetch('/home/cart/checkout', {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": csrfToken
+            },
+            body: formData
+        })
+            .then(response => {
+                if (response.ok) {
+                    document.location.href = '/home/cart/checkout';
+                } else {
+                    // Handle the case when the POST request fails
+                    console.error('Failed to submit the form');
+                    // Add error handling code or display an error message
+                }
+            })
+            .catch(error => {
+                console.error('Error occurred during the POST request:', error);
+                // Handle the error case
             });
-        });
+    });
 
     let Qty_button = document.querySelectorAll('.qty');
     Qty_button.forEach(function (btn) {
