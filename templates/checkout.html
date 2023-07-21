@@ -1,5 +1,20 @@
 {% extends 'basic.html' %}
 {% block title%} Checkout - My Awesome Cart{% endblock %}
+{% block css %}
+
+.container1 li{
+list-style: none;
+}
+
+.all{
+display: flex;
+}
+
+.all img{
+margin: 20px;
+}
+
+{% endblock %}
 {% block body %}
 {% if user.is_authenticated %}
 <div class="container">
@@ -7,17 +22,21 @@
     {% for product in cart_product_list %}
     <div class="container1">
         <li>
-            <img height="200px" class="image" width="200px" src="{{ product.image_src }}" alt="Product Image">
-            <p>{{ product.desc }}</p>
-            <p>{{ product.name }}</p>
-            <p>{{ product.qty }}</p>
-            <p>{{ product.prodId }}</p>
+            <div class="all">
+                <img height="200px" class="image" width="200px" src="{{ product.image_src }}" alt="Product Image">
+                <div class="specs">
+                    <p>{{ product.desc }}</p>
+                    <p>{{ product.name }}</p>
+                    <p>{{ product.qty }}</p>
+                    <p>{{ product.prodId }}</p>
+                </div>
+            </div>
         </li>
     </div>
     {% endfor %}
     <div class="col my-4">
         <h2>Step 2 - Enter Address & Other Details:</h2>
-        <form method="post" action="/home/cart/checkout">{% csrf_token %}
+        <form method="post" action="/home/cart/checkout" id="checkoutForm">{% csrf_token %}
             <input type="hidden" name="itemJson" id="itemJson">
             <div class="form-row">
                 <div class="form-group col-md-6">
@@ -45,7 +64,7 @@
                 </div>
                 <div class="form-group col-md-4">
                     <label for="inputState">State</label>
-                    <input type="text" class="form-control" id="inputAddress2" placeholder="Enter State" name="state">
+                    <input type="text" class="form-control" id="inputState" placeholder="Enter State" name="state">
                 </div>
                 <div class="form-group col-md-2">
                     <label for="inputZip">Zip</label>
@@ -56,10 +75,10 @@
                 <label for="inputZip">Phone Number</label>
                 <input type="tel" class="form-control" id="inputPhone" name="phone_number">
             </div>
-            <button type="submit" class="btn btn-primary" id="checkoutBtn">Place Order</button>
+            <button type="button" class="btn btn-primary checkoutBtn" onclick="submitForm()">Place Order</button>
         </form>
     </div>
-    
+
     {% elif firstBool == False and secondBool == True %}
     {% for product in new_cart_product_list %}
     <div class="container1">
@@ -101,7 +120,7 @@
                 </div>
                 <div class="form-group col-md-4">
                     <label for="inputState">State</label>
-                    <input type="text" class="form-control" id="inputAddress2" placeholder="Enter State" name="state">
+                    <input type="text" class="form-control" id="inputState" placeholder="Enter State" name="state">
                 </div>
                 <div class="form-group col-md-2">
                     <label for="inputZip">Zip</label>
@@ -117,7 +136,8 @@
     </div>
     {% endfor %}
     {% else %}
-    <h5>Your order has been placed successfully!! For More Information of Order navigate to <a href="/home/orders">Orders</a> Page. <br>Continue Shopping click <a href="/">Here</a></h5>
+    <h5>Your order has been placed successfully!! For More Information of Order navigate to <a
+            href="/home/orders">Orders</a> Page. <br>To continue Shopping click <a href="/">Here</a></h5>
     {% endif %}
 
 </div>
@@ -126,49 +146,104 @@
 {% block js %}
 <script>
 
-    var firstBool = {{ firstBool|lower }};
-    var secondBool = {{ secondBool|lower }};
+    var firstBool = {{ firstBool| lower }};
+    var secondBool = {{ secondBool| lower }};
 
     let cart_product_list = {{ cart_product_list | safe }};
     document.getElementById('cart').innerHTML = cart_product_list.length;
     // location.reload();
 
     if (firstBool) {
-        let cart_product_list = {{ cart_product_list | safe }};
-        let orderCart = {};
-        for (let i = 0; i < cart_product_list.length; i++){
-            let prod = cart_product_list[i];
-            let idstr = prod.prodId;
-            let qty = prod.qty;
-            let img = prod.image_src;
-            let name = prod.name;
-            let price = prod.price;
-            let desc = prod.desc;
+        function submitForm(){
+    let cart_product_list = {{ cart_product_list | safe }};
+    let jsonString = JSON.stringify(cart_product_list);
+    let modifiedString = jsonString.replace(/'/g, '"');
+    let modifiedList = JSON.parse(modifiedString);
 
-            
-            orderCart[idstr] = [
-                qty,
-                name,
-                img,
-                desc,
-                price,
-                idstr
-            ]
+    for (let i = 0; i < modifiedList.length; i++) {
+        let orderCart = {};
+        let prod = modifiedList[i];
+        let idstr = prod.prodId;
+        let qty = prod.qty;
+        let img = prod.image_src;
+        let name = prod.name;
+        let price = prod.price;
+        let desc = prod.desc;
+
+
+        orderCart[idstr] = [
+            qty,
+            name,
+            img,
+            desc,
+            price,
+            idstr
+        ]
+
+        let formData = new FormData();
+        let formValues = {}; // Object to store form data
+
+        // Store form values in the formValues object
+        formValues.itemJson = JSON.stringify(orderCart);
+        formValues.name = document.getElementById('inputname').value;
+        formValues.email = document.getElementById('inputEmail4').value;
+        formValues.address1 = document.getElementById('inputAddress').value;
+        formValues.address2 = document.getElementById('inputAddress2').value;
+        formValues.city = document.getElementById('inputCity').value;
+        formValues.state = document.getElementById('inputState').value;
+        formValues.zip_code = 0
+        formValues.phone_number = 0
+        console.log(document.getElementById('inputZip').value);
+        console.log(document.getElementById('inputPhone').value);
+        // Append the formValues object as a single key-value pair in the FormData object
+        formData.append('formData', JSON.stringify(formValues));
+
+        console.log(formValues);
+        // console.log(formData);
+
+        for (let entry of formData.entries()) {
+            console.log(entry);
         }
-        // console.log(JSON.stringify(orderCart));
-        // console.log("Hii");
-        document.getElementById('itemJson').value = JSON.stringify(orderCart);
-        console.log(JSON.stringify(orderCart));
-        // let prodList = JSON.parse('{{ cart_product_list | safe }}');
+
+
+        var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+        // let checkoutBtn = document.getElementsByClassName('checkoutBtn')[0];
+        // checkoutBtn.addEventListener('click', function () {
 
         
+
+            fetch('/home/cart/checkout', {
+                method: 'POST',
+                body: JSON.stringify(formValues),
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRFToken": csrfToken
+                },
+            })
+            .then(response => {
+                document.location.href = '/';
+                // Handle the response
+                console.log(response);
+            })
+            .catch(error => {
+                // Handle any errors
+                console.error(error);
+            });
+        }
+    }
+        // console.log(JSON.stringify(orderCart));
+        // console.log("Hii");
+        // let prodList = JSON.parse('{{ cart_product_list | safe }}');
+
+
         // document.location="/home";
     } else {
         let new_cart_product_list = {{ new_cart_product_list | safe }};
+        
         let new_orderCart = {};
 
         // let cart_product_list = {{ cart_product_list | safe }};
-        for (let i = 0; i < new_cart_product_list.length; i++){
+        for (let i = 0; i < new_cart_product_list.length; i++) {
             let prod = new_cart_product_list[i];
             let idstr = prod.product_Id;
             let qty = prod.qty;
@@ -177,7 +252,7 @@
             let price = prod.price;
             let desc = prod.desc;
 
-            
+
             new_orderCart[idstr] = [
                 qty,
                 name,
@@ -190,10 +265,10 @@
         document.getElementById('itemJson').value = JSON.stringify(new_orderCart);
         console.log(new_orderCart);
 
-        // let new_prodList = JSON.parse('{{ new_cart_product_list | safe }}');
+        let new_prodList = JSON.parse('{{ new_cart_product_list | safe }}');
 
-        // document.getElementById('cart').innerHTML = new_cart_product_list.length;
-        // document.location="/home"
+        document.getElementById('cart').innerHTML = new_cart_product_list.length;
+        document.location="/home"
     }
 
     // let checkoutBtn = document.getElementById('checkoutBtn');

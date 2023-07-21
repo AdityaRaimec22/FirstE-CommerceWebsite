@@ -1,4 +1,4 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, HttpResponse, redirect
 from django.contrib.auth.models import User
 from django.contrib import messages
@@ -213,6 +213,7 @@ def checkout(request):
         data = request.POST.get('requestBody')
         idstr = request.POST.get('idstr')
         prodCart = CartProd.objects.filter(user=user)
+        
         if data == '1':
             print("request made from cart")
 
@@ -294,15 +295,24 @@ def checkout(request):
                                 pass
         
         else:
+            print("else block executed:",request.body)
 
-            itemJson = request.POST.get('itemJson','')
-            name = request.POST.get('name','')
-            email = request.POST.get('email','')
-            address = request.POST.get('address1','') + " " + request.POST.get('address2','')
-            city = request.POST.get('city','')
-            state = request.POST.get('state','')
-            phone_number = request.POST.get('phone_number','')
-            zip_code = request.POST.get('zip_code','')
+            try:
+                data = json.loads(request.body)
+            except json.JSONDecodeError as e:
+                print("JSONDecodeError:", e)
+                print("Request body:", request.body)
+                return HttpResponseBadRequest("Invalid JSON data")
+
+            itemJson = data.get('itemJson', '')
+            name = data.get('name', '')
+            email = data.get('email', '')
+            address = data.get('address1', '') + " " + data.get('address2', '')
+            city = data.get('city', '')
+            state = data.get('state', '')
+            phone_number = data.get('phone_number', 0)
+            zip_code = data.get('zip_code', 0)
+            # update_desc = "Your Order has been placed successfully. Thanks for ordering with us!!"
 
             userOrder = Order(user=user,itemJson=itemJson,name=name,email=email,address=address,city=city,state=state,phone_number=phone_number,zip_code=zip_code)
 
