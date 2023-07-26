@@ -8,8 +8,11 @@ from django.urls import reverse
 from . models import Product, Contact, Order, OrderUpdate, CartProd
 from django.contrib.auth.decorators import login_required
 from math import ceil
+from django.views.decorators.csrf import csrf_exempt
+from PayTm import CheckSum
 import json
 
+MERCHANT_KEY = 'kbzk1DSbJiV_03p5'
 def signin(request):
     fname = ''
     if request.method == "POST":
@@ -25,7 +28,7 @@ def signin(request):
             # Store fname value in session
             request.session['fname'] = fname
 
-            print("the first name of the user is:",fname)
+            # print("the first name of the user is:",fname)
             messages.success(request, "You are logged in successfully")
             return redirect('home')
         else:
@@ -215,7 +218,7 @@ def checkout(request):
         prodCart = CartProd.objects.filter(user=user)
         
         if data == '1':
-            print("request made from cart")
+            # print("request made from cart")
 
             request.session['bool_storer'] = bool_storer
             bool_storer.append(True)
@@ -223,7 +226,7 @@ def checkout(request):
             
 
             if len(prodCart) != 0:
-                print("cart ki length 0 se jyada hai")
+                # print("cart ki length 0 se jyada hai")
 
                 request.session['cart_product_list'] = cart_product_list  
 
@@ -239,12 +242,12 @@ def checkout(request):
                             print("error is:",e)
                             data = {}
                     else:
-                        print("Are me execute ho gya aur json string load hi nhi ho payi.")
+                        # print("Are me execute ho gya aur json string load hi nhi ho payi.")
                         data = {}
 
                     for key in data:
                         try:
-                            print("try statement executed")
+                            # print("try statement executed")
                             prodId = key
                             product_key = tuple(data[key])
                             imageSrc = product_key[1]
@@ -255,11 +258,11 @@ def checkout(request):
                             # print(imageSrc,description,price,name,quantity)
                             cart_product_list.append({'image_src': imageSrc, 'desc': description, 'price': price, 'name': name, 'qty': quantity,'prodId':prodId})
                         except:
-                            print("except statement executed")
+                            # print("except statement executed")
                             pass
 
         elif data == '2':
-            print("request made from products page")
+            # print("request made from products page")
 
             request.session['bool_storer'] = bool_storer
             bool_storer.append(False)
@@ -294,33 +297,57 @@ def checkout(request):
                             except:
                                 pass
         
-        else:
-            print("else block executed:",request.body)
+        # else:
+        #     # print("else block executed:",request.body)
+        #     # print("request is:",request)
 
-            try:
-                data = json.loads(request.body)
-            except json.JSONDecodeError as e:
-                print("JSONDecodeError:", e)
-                print("Request body:", request.body)
-                return HttpResponseBadRequest("Invalid JSON data")
+        #     try:
+        #         data = json.loads(request.body)
+        #     except json.JSONDecodeError as e:
+        #         # print("JSONDecodeError:", e)
+        #         # print("Request body:", request.body)
+        #         return HttpResponseBadRequest("Invalid JSON data")
 
-            itemJson = data.get('itemJson', '')
-            name = data.get('name', '')
-            email = data.get('email', '')
-            address = data.get('address1', '') + " " + data.get('address2', '')
-            city = data.get('city', '')
-            state = data.get('state', '')
-            phone_number = data.get('phone_number', 0)
-            zip_code = data.get('zip_code', 0)
-            # update_desc = "Your Order has been placed successfully. Thanks for ordering with us!!"
+        #     itemJson = data.get('itemJson', '')
+        #     name = data.get('name', '')
+        #     email = data.get('email', '')
+        #     address = data.get('address1', '') + " " + data.get('address2', '')
+        #     city = data.get('city', '')
+        #     state = data.get('state', '')
+        #     phone_number = data.get('phone_number', 0)
+        #     zip_code = data.get('zip_code', 0)
+        #     # update_desc = "Your Order has been placed successfully. Thanks for ordering with us!!"
 
-            userOrder = Order(user=user,itemJson=itemJson,name=name,email=email,address=address,city=city,state=state,phone_number=phone_number,zip_code=zip_code)
+        #     userOrder = Order(user=user,itemJson=itemJson,name=name,email=email,address=address,city=city,state=state,phone_number=phone_number,zip_code=zip_code)
 
-            userOrder.save()
-            update = OrderUpdate(user=user,order_id = userOrder.order_id, update_desc = "The Order has been Placed.")
-            update.save()
-            return render(request,'checkout.html')
-        
+        #     userOrder.save()
+        #     update = OrderUpdate(user=user,order_id = userOrder.order_id, update_desc = "The Order has been Placed.")
+        #     update.save()
+        #     param_dict = {
+
+        #         'MID': 'WorldP64425807474247',
+        #         'ORDER_ID': userOrder.order_id,
+        #         'TXN_AMOUNT': '1',
+        #         'CUST_ID': email,
+        #         'INDUSTRY_TYPE_ID': 'Retail',
+        #         'WEBSITE': 'WEBSTAGING',
+        #         'CHANNEL_ID': 'WEB',
+        #         'CALLBACK_URL':'http://127.0.0.1:8000/home/cart/handlerequest',
+
+        #     }
+
+            # param_dict['CHECKSUMHASH'] = CheckSum.generate_checksum(param_dict, MERCHANT_KEY)
+
+            # print("done")
+            # redirect_url = "handlerequest"
+            # param1 = param_dict
+            # new_redirect_url = f"{redirect_url}?param1={param1}"
+            # return redirect(new_redirect_url)
+            # return redirect('handlerequest')
+            # return redirect('paytm')
+            # return render(request,'paytm.html',{'param_dict':param_dict})
+            # return HttpResponse('done')
+            # return render(request,'checkout.html')
     
     cart_product_list = request.session.get('cart_product_list', [])
     new_cart_product_list = request.session.get('new_cart_product_list',[])
@@ -364,7 +391,7 @@ def orders(request):
             try:
                 data = json.loads(item_json)
             except json.JSONDecodeError as e:
-                print(f"JSONDecodeError: {str(e)}")
+                # print(f"JSONDecodeError: {str(e)}")
                 data = {}
         else:
             data = {}
@@ -385,7 +412,6 @@ def orders(request):
 def cart(request):
 
     user = request.user
-
     new_prodId = ''
     prodId = ''
     prods = ''
@@ -450,7 +476,7 @@ def cart(request):
             try:
                 data = json.loads(item_json)
             except json.JSONDecodeError as e:
-                print(f"JSONDecodeError: {str(e)}")
+                # print(f"JSONDecodeError: {str(e)}")
                 data = {}
         else:
             data = {}
@@ -475,7 +501,7 @@ def cart(request):
                 try:
                     data = json.loads(item_json)
                 except json.JSONDecodeError as e:
-                    print(f"JSONDecodeError: {str(e)}")
+                    # print(f"JSONDecodeError: {str(e)}")
                     data = {}
             else:
                 data = {}
@@ -489,3 +515,53 @@ def cart(request):
     fname = request.session.get('fname')
 
     return render(request,'cart.html',{'cart_product_list':cart_product_list,'newCartProdList':json.dumps(cart_product_list),'fname':fname})
+
+@csrf_exempt
+def paytm(request):
+
+    user = request.user
+    param_dict = {}
+
+    if request.method == "POST":
+        print("the request is made")
+        request.session['param_dict'] = param_dict
+        
+        try:
+            data = json.loads(request.body)
+        except json.JSONDecodeError as e:
+            return HttpResponseBadRequest("Invalid JSON data")
+
+        itemJson = data.get('itemJson', '')
+        name = data.get('name', '')
+        email = data.get('email', '')
+        address = data.get('address1', '') + " " + data.get('address2', '')
+        city = data.get('city', '')
+        state = data.get('state', '')
+        phone_number = data.get('phone_number', 0)
+        zip_code = data.get('zip_code', 0)
+        # update_desc = "Your Order has been placed successfully. Thanks for ordering with us!!"
+
+        userOrder = Order(user=user,itemJson=itemJson,name=name,email=email,address=address,city=city,state=state,phone_number=phone_number,zip_code=zip_code)
+        print("The order Id is:",userOrder.order_id)
+        userOrder.save()
+        update = OrderUpdate(user=user,order_id = userOrder.order_id, update_desc = "The Order has been Placed.")
+        update.save()
+
+        param_dict['MID'] = 'WorldP64425807474247'
+        param_dict['ORDER_ID'] = str(userOrder.order_id)
+        param_dict['TXN_AMOUNT'] = '1'
+        param_dict['CUST_ID'] = email
+        param_dict['INDUSTRY_TYPE_ID'] = 'Retail'
+        param_dict['WEBSITE'] = 'WEBSTAGING'
+        param_dict['CHANNEL_ID'] = 'WEB'
+        param_dict['CALLBACK_URL'] = 'http://127.0.0.1:8000/home/cart/handlerequest'
+    
+    param_dict = request.session.get('param_dict',{})
+    print("hm bhi execute hue hai lala:",param_dict)
+    return render(request, 'paytm.html',{'param_dict':param_dict})
+    
+@csrf_exempt
+def handlerequest(request):
+    print("me execute ho gya.")
+    return HttpResponse('done')
+    #paytm will send post request here.

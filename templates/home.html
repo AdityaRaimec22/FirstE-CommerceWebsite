@@ -165,6 +165,7 @@ width: 100%;
 
 {% block js %}
 <script>
+  let prodList = JSON.parse('{{ prodList | safe }}');
   var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
 
   const button = document.querySelectorAll('.Abtn');
@@ -192,7 +193,7 @@ width: 100%;
       })
       const Add_to_cart_Btn = document.getElementById('div' + idstr);
       Add_to_cart_Btn.innerHTML = `<a href="home/cart"><button class="btn btn-primary">Go To Cart</button></a>`;
-
+      document.getElementById('cart').innerHTML = prodList.length;
     })
   })
 
@@ -201,7 +202,7 @@ width: 100%;
   let idstr = btn.id.toString();  // Use btn.id instead of this.id
   const Add_to_cart_Btn = document.getElementById('div' + idstr);
 
-  let prodList = JSON.parse('{{ prodList | safe }}');
+  
 
   document.getElementById('cart').innerHTML = prodList.length;
 

@@ -8,12 +8,12 @@
     <img height="200px" width="200px" src="{{ product.image_src }}" alt="Product Image">
     <p>{{ product.desc }}</p>
     <p>{{ product.prodDesc }} {{ product.Time }}</p>
+    <button class="btn btn-primary">Return</button>
   </li>
   {% endfor %}
 </ul>
 <script>
   let prodList = JSON.parse('{{ prodList | safe }}');
-
   document.getElementById('cart').innerHTML = prodList.length;
 </script>
 {% endblock %}
