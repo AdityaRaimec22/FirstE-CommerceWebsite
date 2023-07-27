@@ -13,6 +13,7 @@ urlpatterns = [
     path('home/contact',views.contact,name="contact"),
     path('home/cart',views.cart,name="cart"),
     path('home/orders',views.orders,name="orders"),
+    path('home/orders/return',views.Return,name="return"),
     path('home/search',views.search,name="search"),
     path('home/cart/checkout',views.checkout,name="checkout"),
     path('home/cart/handlerequest',views.handlerequest,name="handlerequest"),

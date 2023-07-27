@@ -296,58 +296,6 @@ def checkout(request):
                                 new_cart_product_list.append({'image_src': imageSrc, 'desc': description, 'price': price, 'name': name, 'qty': quantity,'product_Id':product_Id})
                             except:
                                 pass
-        
-        # else:
-        #     # print("else block executed:",request.body)
-        #     # print("request is:",request)
-
-        #     try:
-        #         data = json.loads(request.body)
-        #     except json.JSONDecodeError as e:
-        #         # print("JSONDecodeError:", e)
-        #         # print("Request body:", request.body)
-        #         return HttpResponseBadRequest("Invalid JSON data")
-
-        #     itemJson = data.get('itemJson', '')
-        #     name = data.get('name', '')
-        #     email = data.get('email', '')
-        #     address = data.get('address1', '') + " " + data.get('address2', '')
-        #     city = data.get('city', '')
-        #     state = data.get('state', '')
-        #     phone_number = data.get('phone_number', 0)
-        #     zip_code = data.get('zip_code', 0)
-        #     # update_desc = "Your Order has been placed successfully. Thanks for ordering with us!!"
-
-        #     userOrder = Order(user=user,itemJson=itemJson,name=name,email=email,address=address,city=city,state=state,phone_number=phone_number,zip_code=zip_code)
-
-        #     userOrder.save()
-        #     update = OrderUpdate(user=user,order_id = userOrder.order_id, update_desc = "The Order has been Placed.")
-        #     update.save()
-        #     param_dict = {
-
-        #         'MID': 'WorldP64425807474247',
-        #         'ORDER_ID': userOrder.order_id,
-        #         'TXN_AMOUNT': '1',
-        #         'CUST_ID': email,
-        #         'INDUSTRY_TYPE_ID': 'Retail',
-        #         'WEBSITE': 'WEBSTAGING',
-        #         'CHANNEL_ID': 'WEB',
-        #         'CALLBACK_URL':'http://127.0.0.1:8000/home/cart/handlerequest',
-
-        #     }
-
-            # param_dict['CHECKSUMHASH'] = CheckSum.generate_checksum(param_dict, MERCHANT_KEY)
-
-            # print("done")
-            # redirect_url = "handlerequest"
-            # param1 = param_dict
-            # new_redirect_url = f"{redirect_url}?param1={param1}"
-            # return redirect(new_redirect_url)
-            # return redirect('handlerequest')
-            # return redirect('paytm')
-            # return render(request,'paytm.html',{'param_dict':param_dict})
-            # return HttpResponse('done')
-            # return render(request,'checkout.html')
     
     cart_product_list = request.session.get('cart_product_list', [])
     new_cart_product_list = request.session.get('new_cart_product_list',[])
@@ -386,7 +334,10 @@ def orders(request):
         Time = things.timestamp
 
     for order in orders:
+
         item_json = order.itemJson.strip()
+        order_id = order.order_id
+
         if item_json:
             try:
                 data = json.loads(item_json)
@@ -403,7 +354,7 @@ def orders(request):
             price = product_key[4]
             name = product_key[1]
             quantity = product_key[0]
-            product_list.append({'image_src': imageSrc, 'desc': description, 'price': price, 'name': name, 'qty': quantity,'prodDesc':prodDesc, 'Time':Time})
+            product_list.append({'image_src': imageSrc, 'desc': description, 'price': price, 'name': name, 'qty': quantity,'prodDesc':prodDesc, 'Time':Time,'Id':order_id})
 
     fname = request.session.get('fname')
     return render(request, 'Orders.html', {'product_list': product_list,'prodList':json.dumps(prodList),'fname':fname})
@@ -516,6 +467,35 @@ def cart(request):
 
     return render(request,'cart.html',{'cart_product_list':cart_product_list,'newCartProdList':json.dumps(cart_product_list),'fname':fname})
 
+def Return(request):
+    user = request.user
+    prodList = []
+    items_In_cartProd = CartProd.objects.filter(user=user)
+
+    if request.method == "POST":
+        name = request.POST.get('name','')
+        number = request.POST.get('phone','')
+        email = request.POST.get('email','')
+        order_id = request.POST.get('Id',0)
+        desc = request.POST.get('desc','')
+
+    for item in items_In_cartProd:
+        itemJson = item.itemJson.strip()
+
+        if itemJson:
+            data = json.loads(itemJson)
+
+        else:
+            data = {}
+
+        for key in data:
+            prodId = key
+            prodList.append({"prodId":prodId})
+
+    fname = request.session.get('fname')
+
+    return render(request, 'return.html',{'prodList':json.dumps(prodList),'fname':fname})
+
 @csrf_exempt
 def paytm(request):
 
@@ -542,8 +522,8 @@ def paytm(request):
         # update_desc = "Your Order has been placed successfully. Thanks for ordering with us!!"
 
         userOrder = Order(user=user,itemJson=itemJson,name=name,email=email,address=address,city=city,state=state,phone_number=phone_number,zip_code=zip_code)
-        print("The order Id is:",userOrder.order_id)
         userOrder.save()
+        print("The order Id is:",userOrder.order_id)
         update = OrderUpdate(user=user,order_id = userOrder.order_id, update_desc = "The Order has been Placed.")
         update.save()
 

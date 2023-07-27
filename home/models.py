@@ -41,7 +41,7 @@ class Order(models.Model):
     zip_code = models.IntegerField(default=0)
 
     def __str__(self):
-        return self.name
+        return str(self.order_id)
     
 class OrderUpdate(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
