@@ -168,7 +168,7 @@ margin: 20px;
             let item = cart_product_list[i];
             total += parseInt(item.price)*parseInt(item.qty);
         }
-        console.log("total is:",total);
+        // console.log("total is:",total);
         document.getElementById('total').innerHTML = total;
 
         function submitForm(){
@@ -229,8 +229,6 @@ margin: 20px;
         }
 
     } else {
-        
-        // console.log(new_cart_product_list)
 
         for(let i = 0; i < new_cart_product_list.length; i++)
         {
@@ -249,7 +247,7 @@ margin: 20px;
             for (let i = 0; i < modifiedList.length; i++) {
                 let orderCart = {};
                 let prod = modifiedList[i];
-                let idstr = prod.prodId;
+                let idstr = prod.product_Id;
                 let qty = prod.qty;
                 let img = prod.image_src;
                 let name = prod.name;

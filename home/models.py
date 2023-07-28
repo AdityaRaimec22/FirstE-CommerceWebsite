@@ -38,6 +38,8 @@ class Order(models.Model):
     state = models.CharField(max_length=30)
     phone_number = models.IntegerField(default=0)
     zip_code = models.IntegerField(default=0)
+    order_Update = models.CharField(max_length=200, default="")
+    Time = models.DateField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
         return str(self.order_id)

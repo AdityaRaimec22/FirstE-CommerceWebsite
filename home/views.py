@@ -311,7 +311,7 @@ def orders(request):
     user = request.user
 
     orders = Order.objects.filter(user=user)
-    orderUpd = OrderUpdate.objects.filter(user=user)
+    # orderUpd = OrderUpdate.objects.filter(user=user)
 
     prodList = []
     items_In_cartProd = CartProd.objects.filter(user=user)
@@ -329,14 +329,17 @@ def orders(request):
             prodList.append({"prodId":prodId}) 
     
     product_list = []
-    for things in orderUpd:
-        prodDesc = things.update_desc.strip()
-        Time = things.timestamp
+    # for things in orderUpd:
+    #     prodDesc = things.update_desc.strip()
+    #     Time = things.timestamp
 
     for order in orders:
 
         item_json = order.itemJson.strip()
         order_id = order.order_id
+        prodDesc = order.order_Update.strip()
+        Time = order.Time
+
 
         if item_json:
             try:
@@ -521,13 +524,25 @@ def paytm(request):
         state = data.get('state', '')
         phone_number = data.get('phone_number', 0)
         zip_code = data.get('zip_code', 0)
-        # update_desc = "Your Order has been placed successfully. Thanks for ordering with us!!"
+        update_desc = "Your Order has been placed successfully. Thanks for ordering with us!!"
 
-        userOrder = Order(user=user,itemJson=itemJson,name=name,email=email,address=address,city=city,state=state,phone_number=phone_number,zip_code=zip_code)
+        userOrder = Order(
+            user=user,
+            itemJson=itemJson,
+            name=name,
+            email=email,
+            address=address,
+            city=city,
+            state=state,
+            phone_number=phone_number,
+            zip_code=zip_code, 
+            order_Update = update_desc
+        )
         userOrder.save()
-        print("The order Id is:",userOrder.order_id)
-        update = OrderUpdate(user=user,order_id = userOrder.order_id, update_desc = "The Order has been Placed.")
-        update.save()
+
+        # print("The order Id is:",userOrder.order_id)
+        # update = OrderUpdate(user=user,order_id = userOrder.order_id, update_desc = "The Order has been Placed.")
+        # update.save()
 
         param_dict['MID'] = 'WorldP64425807474247'
         param_dict['ORDER_ID'] = str(userOrder.order_id)
@@ -539,7 +554,7 @@ def paytm(request):
         param_dict['CALLBACK_URL'] = 'http://127.0.0.1:8000/home/cart/handlerequest'
     
     param_dict = request.session.get('param_dict',{})
-    print("hm bhi execute hue hai lala:",param_dict)
+    # print("hm bhi execute hue hai lala:",param_dict)
     return render(request, 'paytm.html',{'param_dict':param_dict})
     
 @csrf_exempt
