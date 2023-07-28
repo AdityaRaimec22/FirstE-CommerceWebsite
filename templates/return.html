@@ -1,9 +1,8 @@
 {% extends 'basic.html' %}
 {% block title %} Return {% endblock %}
 {% block body%}
-<!-- {% csrf_token %} -->
 
-<div class="container">
+<div class="container my-2">
     <h3>Return product</h3>
     <form action="/home/orders/return" method="post">
         {% csrf_token %}

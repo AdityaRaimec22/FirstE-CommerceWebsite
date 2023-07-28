@@ -5,7 +5,7 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import check_password
 from django.urls import reverse
-from . models import Product, Contact, Order, OrderUpdate, CartProd
+from . models import Product, Contact, Order, OrderUpdate, CartProd, Return
 from django.contrib.auth.decorators import login_required
 from math import ceil
 from django.views.decorators.csrf import csrf_exempt
@@ -467,7 +467,7 @@ def cart(request):
 
     return render(request,'cart.html',{'cart_product_list':cart_product_list,'newCartProdList':json.dumps(cart_product_list),'fname':fname})
 
-def Return(request):
+def prodReturn(request):
     user = request.user
     prodList = []
     items_In_cartProd = CartProd.objects.filter(user=user)
@@ -478,6 +478,8 @@ def Return(request):
         email = request.POST.get('email','')
         order_id = request.POST.get('Id',0)
         desc = request.POST.get('desc','')
+        prod_Return = Return(user=user,name= name, email=email, phone=number, returnId=order_id,desc=desc)
+        prod_Return.save()
 
     for item in items_In_cartProd:
         itemJson = item.itemJson.strip()

@@ -2,7 +2,6 @@ import json
 from django.db import models
 from django.contrib.auth.models import User
 
-
 class Product(models.Model):
     product_id = models.AutoField
     product_name = models.CharField(max_length=50)
@@ -64,3 +63,15 @@ class CartProd(models.Model):
             name = data[key][2]
 
         return name
+    
+class Return(models.Model):
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    name = models.CharField(max_length=100, default="")
+    phone = models.CharField(max_length=70,default="")
+    email = models.CharField(max_length=100, default="")
+    returnId = models.CharField(max_length=70, default="")
+    desc = models.CharField(max_length=500, default="")
+
+    def __str__(self):
+        return self.returnId
