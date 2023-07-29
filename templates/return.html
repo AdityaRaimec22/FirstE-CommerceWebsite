@@ -4,19 +4,19 @@
 
 <div class="container my-2">
     <h3>Return product</h3>
-    <form action="/home/orders/return" method="post">
+    <form action="/home/orders/return" method="post" id="returnForm" name="returnForm">
         {% csrf_token %}
         <div class="form-group">
             <label for="name">Name</label>
             <input type="text" class="form-control" id="name" name="name" placeholder="Enter your Name">
         </div>
         <div class="form-group">
-            <label for="phone">Order Id</label>
+            <label for="phone">number</label>
             <input type="tel" class="form-control" id="number" name="phone" placeholder="Enter your number">
         </div>
         <div class="form-group">
-            <label for="Id">number</label>
-            <input type="tel" class="form-control" id="number" name="Id" placeholder="Enter Order Id">
+            <label for="Id">Order Id</label>
+            <input type="tel" class="form-control" id="Id" name="Id" placeholder="Enter Order Id">
         </div>
         <div class="form-group">
             <label for="email">Email</label>
@@ -26,15 +26,64 @@
             <label for="desc">Reason for returning the product..</label>
             <textarea class="form-control" id="desc" name="desc" rows="3"></textarea>
         </div>
+        <p id="response"></p>
         <p>Updates regarding cancelation will be displayed on the ordes Page.</p>
-        <button type="submit" class="btn btn-primary">Submit</button>
+        <button type="button" class="btn btn-primary" id="submit">Submit</button>
     </form>
 </div>
 {% endblock %}
 {% block js %}
 <script>
+    // document.returnForm.submit();
     let prodList = JSON.parse('{{ prodList | safe }}');
-
     document.getElementById('cart').innerHTML = prodList.length;
+
+    let ordList = {{ ordList | safe}};
+    let newOrdId = 0;
+    console.log(ordList);
+
+    let ordId = document.getElementById('Id');
+    // console.log("ordId:",ordId);
+    ordId.addEventListener('keyup',function(e){
+        newOrdId = e.target.value;
+        console.log(newOrdId);
+    })
+    for(let i = 0; i < ordList.length; i++)
+    {
+        let submitBtn = document.getElementById('submit');
+        submitBtn.addEventListener('click',function(){
+            if(ordList[i] == newOrdId)
+            {
+                const formData = new FormData(document.getElementById('returnForm'));
+
+                fetch('/home/orders/return',{
+                    method:"POST",
+                    body: formData
+                })
+                .then(data => {
+                    document.getElementById('response').innerHTML = "Return request made successfully..";
+                    document.getElementById('response').style.color = 'green';
+                    clearData();
+                    setTimeout(() => {
+                        document.location.href = '/home/orders'
+                    }, 1000);
+                })
+            }
+            else
+            {
+                document.getElementById('response').innerHTML = "Kindly enter the order Id correctly.";
+                document.getElementById('response').style.color = 'red';
+            }
+        })
+    }
+
+    const clearData = () => {
+        document.getElementById('name').value = '';
+        document.getElementById('number').value = '';
+        document.getElementById('Id').value = '';
+        document.getElementById('email').value = '';
+        document.getElementById('desc').value = '';
+    }
+    
 </script>
 {% endblock %}

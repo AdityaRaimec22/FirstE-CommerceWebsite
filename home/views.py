@@ -10,6 +10,7 @@ from django.contrib.auth.decorators import login_required
 from math import ceil
 from django.views.decorators.csrf import csrf_exempt
 from PayTm import CheckSum
+# from datetime import datetime
 import json
 
 MERCHANT_KEY = 'kbzk1DSbJiV_03p5'
@@ -311,6 +312,12 @@ def orders(request):
     user = request.user
 
     orders = Order.objects.filter(user=user)
+    prodReturn = Return.objects.filter(user=user)
+
+    prodReturnList = []
+    for prods in prodReturn:
+        returnId = prods.returnId
+        prodReturnList.append(returnId)
     # orderUpd = OrderUpdate.objects.filter(user=user)
 
     prodList = []
@@ -338,7 +345,8 @@ def orders(request):
         item_json = order.itemJson.strip()
         order_id = order.order_id
         prodDesc = order.order_Update.strip()
-        Time = order.Time
+        Date = order.Time
+        # Time = order.current_Time.strip()
 
 
         if item_json:
@@ -357,10 +365,10 @@ def orders(request):
             price = product_key[4]
             name = product_key[1]
             quantity = product_key[0]
-            product_list.append({'image_src': imageSrc, 'desc': description, 'price': price, 'name': name, 'qty': quantity,'prodDesc':prodDesc, 'Time':Time,'Id':order_id})
+            product_list.append({'image_src': imageSrc, 'desc': description, 'price': price, 'name': name, 'qty': quantity,'prodDesc':prodDesc, 'Date':Date,'Id':order_id})
 
     fname = request.session.get('fname')
-    return render(request, 'Orders.html', {'product_list': product_list,'prodList':json.dumps(prodList),'fname':fname})
+    return render(request, 'Orders.html', {'product_list': product_list,'prodList':json.dumps(prodList),'fname':fname,'prodReturnList':prodReturnList})
 
 @login_required(login_url="/signin")
 def cart(request):
@@ -473,7 +481,12 @@ def cart(request):
 def prodReturn(request):
     user = request.user
     prodList = []
+    ordId = 0
+    order_id = 0
+    new_Update = ''
     items_In_cartProd = CartProd.objects.filter(user=user)
+    orderFound = False
+    prod_Return = Return(user=user,name= '', email='', phone=0, returnId=0,desc='')
 
     if request.method == "POST":
         name = request.POST.get('name','')
@@ -482,7 +495,33 @@ def prodReturn(request):
         order_id = request.POST.get('Id',0)
         desc = request.POST.get('desc','')
         prod_Return = Return(user=user,name= name, email=email, phone=number, returnId=order_id,desc=desc)
-        prod_Return.save()
+        
+    ordList = []
+    existing_Orders = Order.objects.filter(user = user)
+    for order in existing_Orders:
+        ordId = order.order_id
+        ordList.append(ordId)
+            # newUpdate = order.order_Update.strip()
+        print("ordId is:",ordId)
+        print("order_id is:",order_id)
+
+        if str(ordId) == str(order_id):
+            new_Update = "Return requested2"
+            print("things working fine")
+            instance = existing_Orders.get(order_id = ordId)
+            instance.order_Update = new_Update
+            instance.save()
+            prod_Return.save()
+            orderFound = True
+            break
+
+        else:
+            orderFound = False
+            print("me toh else me aa gya batao kya krna hai..")
+        # UpdateDesc = Order(user=user,order_Update = new_Update)
+        # UpdateDesc.save()
+
+    print(order.order_Update.strip())
 
     for item in items_In_cartProd:
         itemJson = item.itemJson.strip()
@@ -498,8 +537,9 @@ def prodReturn(request):
             prodList.append({"prodId":prodId})
 
     fname = request.session.get('fname')
+    print("the found is:",orderFound)
 
-    return render(request, 'return.html',{'prodList':json.dumps(prodList),'fname':fname})
+    return render(request, 'return.html',{'prodList':json.dumps(prodList),'fname':fname,'orderFound':orderFound,'ordList':ordList})
 
 @csrf_exempt
 def paytm(request):
@@ -525,6 +565,7 @@ def paytm(request):
         phone_number = data.get('phone_number', 0)
         zip_code = data.get('zip_code', 0)
         update_desc = "Your Order has been placed successfully. Thanks for ordering with us!!"
+        # Time = datetime.now()
 
         userOrder = Order(
             user=user,
@@ -537,6 +578,7 @@ def paytm(request):
             phone_number=phone_number,
             zip_code=zip_code, 
             order_Update = update_desc
+            # current_Time = Time
         )
         userOrder.save()
 

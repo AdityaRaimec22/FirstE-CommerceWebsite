@@ -28,6 +28,7 @@ class Contact(models.Model):
         return self.name
     
 class Order(models.Model):
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     itemJson= models.CharField(max_length=5000,default="")
     order_id = models.AutoField(primary_key=True)
@@ -39,6 +40,7 @@ class Order(models.Model):
     phone_number = models.IntegerField(default=0)
     zip_code = models.IntegerField(default=0)
     order_Update = models.CharField(max_length=200, default="")
+    # current_Time = models.CharField(max_length=20,default="")
     Time = models.DateField(auto_now_add=True, null=True, blank=True)
 
     def __str__(self):
