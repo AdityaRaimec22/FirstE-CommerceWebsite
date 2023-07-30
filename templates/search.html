@@ -72,7 +72,9 @@ width: 100%;
 {% block body %}
 {% csrf_token %}
 {% load static %}
-
+{% if not product %}
+<p>No search found kindly enter the name of the product correctly</p>
+{% else %}
 {% for product in prods %}
 {% for i in product %}
 <div class="col-xs-3 col-sm-3 col-md-3">
@@ -87,11 +89,9 @@ width: 100%;
         </div>
     </div>
 </div>
-
 {% endfor %}
 {% endfor %}
-
-
+{% endif %}
 {% endblock %}
 {% block js %}
 <script>
@@ -127,15 +127,14 @@ width: 100%;
         })
     })
 
+    let prodList = JSON.parse('{{ prodList | safe }}');
+
+    document.getElementById('cart').innerHTML = prodList.length;
+
     const Go_To_Cart = document.querySelectorAll('.Abtn');
     Go_To_Cart.forEach(function (btn) {
         let idstr = btn.id.toString();  // Use btn.id instead of this.id
         const Add_to_cart_Btn = document.getElementById('div' + idstr);
-
-        let prodList = JSON.parse('{{ prodList | safe }}');
-
-        document.getElementById('cart').innerHTML = prodList.length;
-
         for (let i = 0; i < prodList.length; i++) {
             let prod = prodList[i];
 
