@@ -5,10 +5,10 @@
     <div class="row">
         <div class="col-md-4">
             {% csrf_token %}
-            <div class="row">
-                <img src="/media/{{product.image}}" id="imgpr{{product.id}}" width="233px" height="385px">
+            <div class="row" >
+                <img style="height: 300px; width: 300px;" src="/media/{{product.image}}" id="imgpr{{product.id}}" width="233px" height="385px">
             </div>
-            <div class="row">
+            <div class="col">
                 <!-- <a href="/home/cart/checkout"> -->
                 <button data-image="/media/{{product.image}}" data-price="{{product.price}}"
                     data-product-name="{{product.product_name}}" data-description="{{product.desc}}"

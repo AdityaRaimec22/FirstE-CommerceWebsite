@@ -9,6 +9,7 @@ urlpatterns = [
     path('signout',views.userLogout,name="signout"),
     path('',views.home,name="home"),
     path('paytm',views.paytm,name="paytm"),
+    path('activate/<uidb64>/<token>', views.activate, name='activate'),
     path('home/products/<int:myid>',views.products,name="products"),
     path('home/contact',views.contact,name="contact"),
     path('home/cart',views.cart,name="cart"),

@@ -1,3 +1,5 @@
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
+from django.utils.encoding import force_bytes, force_str
 from django.http import HttpResponseBadRequest, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render, HttpResponse, redirect
 from django.contrib.auth.models import User
@@ -5,10 +7,15 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.hashers import check_password
 from django.urls import reverse
+from django.core.mail import send_mail, EmailMessage
+from FirstWebsite import settings
 from . models import Product, Contact, Order, OrderUpdate, CartProd, Return
 from django.contrib.auth.decorators import login_required
+from django.contrib.sites.shortcuts import get_current_site
+from django.template.loader import render_to_string
 from math import ceil
 from django.views.decorators.csrf import csrf_exempt
+from . tokens import generate_token
 from PayTm import CheckSum
 # from datetime import datetime
 import json
@@ -48,6 +55,10 @@ def signup(request):
         pass1 = request.POST['pass1']
         pass2 = request.POST['pass2']
 
+        if pass1 != pass2:
+            messages.error(request,"Password and confirm password were not matched")
+            return redirect('signup')
+
         myuser = User.objects.create_user(username, email, pass1)
         myuser.first_name = fname
         myuser.last_name = lname
@@ -56,9 +67,49 @@ def signup(request):
 
         messages.success(request, "Your account has been successfully created!! kindly logIn to continue. Thanks")
 
+        subject = "Welcome to raimart login!"
+        message = "Hello " + myuser.first_name + "!\n\n"+"Welcome to raimart!!\n Thanks for visiting our site.\n We have also sent you a confirmation email kindly confirm your email after clicking on the link present there.\n\nThanking You\nAditya Rai"
+        from_email = settings.EMAIL_HOST_USER
+        to_list = [myuser.email]
+        send_mail(subject, message, from_email, to_list)
+
+        current_site = get_current_site(request)
+        email_subject = "Confirm your email @raimart"
+        message2 = render_to_string('email_confirmation.html',{
+            'name':myuser.first_name,
+            'domain':current_site.domain,
+            'uid':urlsafe_base64_encode(force_bytes(myuser.pk)),
+            'token':generate_token.make_token(myuser)
+        })
+        email = EmailMessage(
+            email_subject,
+            message2,
+            settings.EMAIL_HOST_USER,
+            [myuser.email],
+        )
+        email.fail_silently = True
+        email.send()
+
         return redirect('signin')
 
     return render(request, 'signup.html')
+
+def activate(request, uidb64, token):
+    try:
+        uid = force_str(urlsafe_base64_decode(uidb64))
+        myuser = User.objects.get(pk = uid)
+    except(TypeError, ValueError, OverflowError, User.DoesNotExist):
+        myuser = None
+
+    if myuser is not None and generate_token.check_token(myuser, token):
+        myuser.is_active = True
+        myuser.save()
+        login(request, myuser)
+        messages.success(request,"Your account has been activated.")
+        return redirect('/')
+    else:
+        return render(request,'activation_failed.html')
+
 
 def userLogout(request):
     logout(request)
@@ -586,7 +637,7 @@ def paytm(request):
         # update = OrderUpdate(user=user,order_id = userOrder.order_id, update_desc = "The Order has been Placed.")
         # update.save()
 
-        param_dict['MID'] = 'WorldP64425807474247'
+        param_dict['MID'] = 'XiwOUO11217750221275'
         param_dict['ORDER_ID'] = str(userOrder.order_id)
         param_dict['TXN_AMOUNT'] = '1'
         param_dict['CUST_ID'] = email
