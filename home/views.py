@@ -676,6 +676,7 @@ def address(request):
     fname = request.session.get('fname')
     items_In_cartProd = CartProd.objects.filter(user=user)
     prodList = []
+    
     for item in items_In_cartProd:
         itemJson = item.itemJson.strip()
 

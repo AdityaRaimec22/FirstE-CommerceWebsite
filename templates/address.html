@@ -29,6 +29,7 @@
 {% block js %}
 <script>
     const radioButtons = document.querySelectorAll('.address-radio');
+
     let prodList = {{ prodList | safe }};
     radioButtons.forEach(radioButton => {
         radioButton.addEventListener('click', () => {
@@ -39,7 +40,6 @@
             });
         });
     });
-    
     
     document.getElementById('cart').innerHTML = prodList.length;
     let small_container = document.getElementById('small-container');
