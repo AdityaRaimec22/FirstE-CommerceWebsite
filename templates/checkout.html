@@ -36,6 +36,18 @@ margin: 20px;
     </div>
     {% endfor %}
     <h4>Your cart total is Rs. <span id="total" style="color: aqua;">0</span>/-</h4>
+    <h3>Deliver to this address</h3>
+    {% for address in addList %}
+    <div style="display: flex; flex-direction: row;">
+        <div style="margin: 10px;">
+            <p><strong>{{address.name}}</strong><br>
+            {{address.street}}, {{address.city}}, {{address.state}} - {{address.pincode}} <br> {{address.phone}}</p>
+        </div>
+        <div>
+            <button class="btn btn-dark">Change</button>
+        </div>
+    </div>
+    {% endfor %}
     <div class="col my-4">
         <h2>Step 2 - Enter Address & Other Details:</h2>
         <form method="post" action="/paytm" id="checkoutForm">{% csrf_token %}
@@ -95,6 +107,18 @@ margin: 20px;
         </li>
     </div>
     <h4>Your cart total is Rs. <span id="total" style="color: aqua;">0</span>/-</h4>
+    <h3>Deliver to this Address</h3>
+    {% for address in addList %}
+    <div style="display: flex; flex-direction: row;">
+        <div style="margin: 10px;">
+            <p><strong>{{address.name}}</strong><br>
+            {{address.street}}, {{address.city}}, {{address.state}} - {{address.pincode}} <br> {{address.phone}}</p>
+        </div>
+        <div>
+            <button class="btn btn-dark">Change</button>
+        </div>
+    </div>
+    {% endfor %}
     <div class="col my-4">
         <h2>Step 2 - Enter Address & Other Details:</h2>
         <form method="post" action="/paytm" id="checkoutForm">{% csrf_token %}

@@ -46,15 +46,6 @@ class Order(models.Model):
     def __str__(self):
         return str(self.order_id)
     
-class OrderUpdate(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    update_Id = models.AutoField(primary_key=True)
-    order_id = models.IntegerField(default=0)
-    update_desc = models.CharField(max_length=5000)
-    timestamp = models.DateField(auto_now_add=True)   
-
-    def __str__(self):
-        return self.update_desc[0:7] + "..."
     
 class CartProd(models.Model):
 
@@ -79,3 +70,17 @@ class Return(models.Model):
 
     def __str__(self):
         return self.returnId
+    
+class Address(models.Model):
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    name = models.CharField(max_length=100,default="")
+    phone = models.CharField(max_length=10, default="")
+    pincode = models.CharField(max_length=10, default="")
+    city = models.CharField(max_length=200, default="")
+    street = models.CharField(max_length=300, default="")
+    state = models.CharField(max_length=50, default="")
+
+    def __str__(self):
+        return self.name
+

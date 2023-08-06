@@ -1,0 +1,81 @@
+{% extends 'basic.html' %}
+{% load static %}
+{% block title %}Address - My Awesome Cart{% endblock %}
+{% block body %}
+<div class="container my-4">
+    <button class="btn btn-dark" id="address">Add new Address</button>
+    <div id="small-container">
+        
+    </div>
+      {% for address in addList %}
+        <div style="display: flex; flex-direction: row;">
+            <div style="margin: 10px;">
+                <p><strong>{{address.name}}</strong><br>
+                {{address.street}}, {{address.city}}, {{address.state}} - {{address.pincode}} <br> {{address.phone}}</p>
+            </div>
+            <div>
+                <button class="btn btn-dark">Change</button>
+            </div>
+        </div>
+        <div class="col-12">
+            <label class="radio-container">
+                <input type="radio" name="selectedAddress" class="address-radio">
+                <span class="checkmark">select address</span>
+            </label>
+        </div>
+        {% endfor %}
+</div>
+{% endblock %}
+{% block js %}
+<script>
+    const radioButtons = document.querySelectorAll('.address-radio');
+    let prodList = {{ prodList | safe }};
+    radioButtons.forEach(radioButton => {
+        radioButton.addEventListener('click', () => {
+            radioButtons.forEach(rb => {
+                if (rb !== radioButton) {
+                    rb.checked = false;
+                }
+            });
+        });
+    });
+    
+    
+    document.getElementById('cart').innerHTML = prodList.length;
+    let small_container = document.getElementById('small-container');
+    let newAddbtn = document.getElementById('address');
+    newAddbtn.addEventListener('click',function(){
+        small_container.innerHTML = `
+        <form class="row g-3" action="/address" method="post">{% csrf_token %}
+            <div class="col-md-6">
+              <label for="name" class="form-label">Name</label>
+              <input type="text" class="form-control" id="name" name="name" placeholder="Full Name (Required*)" required>
+            </div>
+            <div class="col-md-6">
+              <label for="Phone" class="form-label">Phone</label>
+              <input type="text" class="form-control" id="Phone" name="Phone" placeholder="Mobile Number (Required*)" required>
+            </div>
+            <div class="col-12">
+              <label for="Address" class="form-label">Address</label>
+              <input type="text" class="form-control" id="Address" name="Address" placeholder="Street name, building name, house no (Required*)" required>
+            </div>
+            <div class="col-md-6">
+              <label for="City" class="form-label">City</label>
+              <input type="text" class="form-control" id="City" name="City" placeholder="City (Required*)" required>
+            </div>
+            <div class="col-md-4">
+              <label for="State" class="form-label">State</label>
+              <input type="text" class="form-control" id="State" name="State" placeholder="State Name (Required*)" required>
+            </div>
+            <div class="col-md-2">
+              <label for="Zip" class="form-label">Pin Code</label>
+              <input type="text" class="form-control" id="Zip" name="Zip" placeholder="Pin Code (Required*)" required>
+            </div>
+            <div class="col-12">
+              <button type="submit" class="btn btn-primary">Sign in</button>
+            </div>
+          </form>
+        `
+    })
+</script>
+{% endblock %}

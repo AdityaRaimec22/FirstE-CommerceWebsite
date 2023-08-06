@@ -9,7 +9,7 @@ from django.contrib.auth.hashers import check_password
 from django.urls import reverse
 from django.core.mail import send_mail, EmailMessage
 from FirstWebsite import settings
-from . models import Product, Contact, Order, OrderUpdate, CartProd, Return
+from . models import Product, Contact, Order, CartProd, Return, Address
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
@@ -348,6 +348,19 @@ def checkout(request):
                                 new_cart_product_list.append({'image_src': imageSrc, 'desc': description, 'price': price, 'name': name, 'qty': quantity,'product_Id':product_Id})
                             except:
                                 pass
+
+    addList = []
+    addresses = Address.objects.filter(user=user)
+    for newAdd in addresses:
+        
+        user_name = newAdd.name.strip()
+        user_phone = newAdd.phone.strip()
+        user_pincode = newAdd.pincode.strip()
+        user_city = newAdd.city.strip()
+        user_street = newAdd.street.strip()
+        user_state = newAdd.state.strip()
+        addList.append({'name':user_name,'phone':user_phone,'pincode':user_pincode,'city':user_city,'street':user_street,'state':user_state})
+
     
     cart_product_list = request.session.get('cart_product_list', [])
     new_cart_product_list = request.session.get('new_cart_product_list',[])
@@ -355,7 +368,7 @@ def checkout(request):
     bool_storer = request.session.get('bool_storer',[])
 
     fname = request.session.get('fname')
-    return render(request,'checkout.html',{"firstBool":bool_storer[0] if bool_storer else True,"secondBool":bool_storer[1] if bool_storer else False,"cart_product_list":cart_product_list,"new_cart_product_list":new_cart_product_list,"fname":fname})
+    return render(request,'checkout.html',{"firstBool":bool_storer[0] if bool_storer else True,"secondBool":bool_storer[1] if bool_storer else False,"cart_product_list":cart_product_list,"new_cart_product_list":new_cart_product_list,"fname":fname,'addList':addList})
 
 @login_required(login_url="/signin")
 def orders(request):
@@ -655,3 +668,49 @@ def handlerequest(request):
     print("me execute ho gya.")
     return HttpResponse('done')
     #paytm will send post request here.
+
+@login_required(login_url="/signin")
+def address(request):
+
+    user = request.user
+    fname = request.session.get('fname')
+    items_In_cartProd = CartProd.objects.filter(user=user)
+    prodList = []
+    for item in items_In_cartProd:
+        itemJson = item.itemJson.strip()
+
+        if itemJson:
+            data = json.loads(itemJson)
+
+        else:
+            data = {}
+
+        for key in data:
+            prodId = key
+            prodList.append({"prodId":prodId})
+
+    if request.method == "POST":
+        name = request.POST.get('name','') 
+        Phone = request.POST.get('Phone','') 
+        street = request.POST.get('Address','')
+        city = request.POST.get('City','')
+        state = request.POST.get('State','')
+        pincode = request.POST.get('Zip','')
+        address = Address(user=user, name = name, phone = Phone, city = city, pincode = pincode, state = state, street = street)
+        address.save()
+
+    addList = []
+    addresses = Address.objects.filter(user=user)
+    for newAdd in addresses:
+        
+        user_name = newAdd.name.strip()
+        user_phone = newAdd.phone.strip()
+        user_pincode = newAdd.pincode.strip()
+        user_city = newAdd.city.strip()
+        user_street = newAdd.street.strip()
+        user_state = newAdd.state.strip()
+        addList.append({'name':user_name,'phone':user_phone,'pincode':user_pincode,'city':user_city,'street':user_street,'state':user_state})
+    
+    return render(request,'address.html',{'fname':fname,'prodList':prodList,'addList':addList})
+    
+
