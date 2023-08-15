@@ -7,39 +7,53 @@
     <div id="small-container">
         
     </div>
-      {% for address in addList %}
-        <div style="display: flex; flex-direction: row;">
-            <div style="margin: 10px;">
-                <p><strong>{{address.name}}</strong><br>
-                {{address.street}}, {{address.city}}, {{address.state}} - {{address.pincode}} <br> {{address.phone}}</p>
-            </div>
-            <div>
-                <button class="btn btn-dark">Change</button>
-            </div>
+    {% for address in addList %}
+    <div style="display: flex; flex-direction: row;">
+        <div style="margin: 10px;">
+            <p><strong>{{address.name}}</strong><br>
+            {{address.street}}, {{address.city}}, {{address.state}} - {{address.pincode}} <br> {{address.phone}} <br> {{address.AddressId}}</p>
         </div>
-        <div class="col-12">
-            <label class="radio-container">
-                <input type="radio" name="selectedAddress" class="address-radio">
-                <span class="checkmark">select address</span>
-            </label>
+        <div>
+            <button class="btn btn-dark">Change</button>
         </div>
-        {% endfor %}
+    </div>
+    <div class="col-12">
+        <label class="radio-container">
+            <input type="hidden" value="" name="primaryAddress">
+            <input type="radio" name="selectedAddress" class="address-radio" id="add{{address.AddressId}}">{% csrf_token %}
+            <span class="checkmark">select address</span>
+        </label>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}
 {% block js %}
 <script>
-    const radioButtons = document.querySelectorAll('.address-radio');
-
     let prodList = {{ prodList | safe }};
-    radioButtons.forEach(radioButton => {
-        radioButton.addEventListener('click', () => {
-            radioButtons.forEach(rb => {
-                if (rb !== radioButton) {
-                    rb.checked = false;
-                }
-            });
-        });
-    });
+    let addList = {{addList | safe}};
+    var csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+    for(let i = 0; i < addList.length; i++)
+    {
+      name = addList[i]['preference'];
+    }
+    
+      console.log(addList);
+      const radioButtons = document.querySelectorAll('.address-radio');
+      radioButtons.forEach(radioButton => {
+          radioButton.addEventListener('click', function() {
+              let idstr = this.id;
+              console.log("idstr:", idstr);
+              this.checked = true;
+              fetch('/address', {
+                  method: "PUT",
+                  headers: {
+                      "X-CSRFToken": csrfToken
+                  },
+                  body: idstr
+              })
+          });
+      });
+    
     
     document.getElementById('cart').innerHTML = prodList.length;
     let small_container = document.getElementById('small-container');
@@ -72,7 +86,7 @@
               <input type="text" class="form-control" id="Zip" name="Zip" placeholder="Pin Code (Required*)" required>
             </div>
             <div class="col-12">
-              <button type="submit" class="btn btn-primary">Sign in</button>
+              <button type="submit" class="btn btn-primary">Save</button>
             </div>
           </form>
         `

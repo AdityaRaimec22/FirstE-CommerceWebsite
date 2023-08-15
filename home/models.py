@@ -15,7 +15,6 @@ class Product(models.Model):
     def __str__(self):
         return self.product_name
 
-
 class Contact(models.Model):
     msg_id = models.AutoField(primary_key=True)
     name = models.CharField(max_length=50)
@@ -70,13 +69,14 @@ class Return(models.Model):
 
     def __str__(self):
         return self.returnId
-    
-class Address(models.Model):
+
+class newAddress(models.Model):
 
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    ordId = models.AutoField(primary_key=True)
     name = models.CharField(max_length=100,default="")
     primary = models.BooleanField(default=False)
-    phone = models.CharField(max_length=10, default="")
+    phone = models.CharField(max_length=20, default="")
     pincode = models.CharField(max_length=10, default="")
     city = models.CharField(max_length=200, default="")
     street = models.CharField(max_length=300, default="")
@@ -84,4 +84,3 @@ class Address(models.Model):
 
     def __str__(self):
         return self.name
-

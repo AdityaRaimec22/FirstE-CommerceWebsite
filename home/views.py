@@ -9,7 +9,7 @@ from django.contrib.auth.hashers import check_password
 from django.urls import reverse
 from django.core.mail import send_mail, EmailMessage
 from FirstWebsite import settings
-from . models import Product, Contact, Order, CartProd, Return, Address
+from . models import Product, Contact, Order, CartProd, Return, newAddress
 from django.contrib.auth.decorators import login_required
 from django.contrib.sites.shortcuts import get_current_site
 from django.template.loader import render_to_string
@@ -149,7 +149,7 @@ def home(request):
     # Retrieve fname from session
     fname = request.session.get('fname')
 
-    return render(request, 'home.html', {'prodList': json.dumps(prodList), 'allprods': allProds, 'fname': fname})
+    return render(request, 'index.html', {'prodList': json.dumps(prodList), 'allprods': allProds, 'fname': fname})
 
 def searchMatch(query , item):
     if query in item.product_name.lower() or query in item.desc.lower() or query in item.category.lower():
@@ -350,7 +350,7 @@ def checkout(request):
                                 pass
 
     addList = []
-    addresses = Address.objects.filter(user=user)
+    addresses = newAddress.objects.filter(user=user)
     for newAdd in addresses:
         
         user_name = newAdd.name.strip()
@@ -673,6 +673,7 @@ def handlerequest(request):
 def address(request):
 
     user = request.user
+    address1 = newAddress(user=user, name = '', phone = '', city = '', pincode = '', state = '', street = '')
     fname = request.session.get('fname')
     items_In_cartProd = CartProd.objects.filter(user=user)
     prodList = []
@@ -690,6 +691,8 @@ def address(request):
             prodId = key
             prodList.append({"prodId":prodId})
 
+    
+
     if request.method == "POST":
         name = request.POST.get('name','') 
         Phone = request.POST.get('Phone','') 
@@ -697,20 +700,43 @@ def address(request):
         city = request.POST.get('City','')
         state = request.POST.get('State','')
         pincode = request.POST.get('Zip','')
-        address = Address(user=user, name = name, phone = Phone, city = city, pincode = pincode, state = state, street = street)
-        address.save()
+        address1 = newAddress(user=user, name = name, phone = Phone, city = city, pincode = pincode, state = state, street = street)
+        address1.save()
 
     addList = []
-    addresses = Address.objects.filter(user=user)
+    addresses = newAddress.objects.filter(user=user)
     for newAdd in addresses:
         
         user_name = newAdd.name.strip()
+        user_id = newAdd.ordId
         user_phone = newAdd.phone.strip()
+        user_preference = newAdd.primary
+        preference = str(user_preference)
+        add_Id = "b" + '\'add'+str(user_id) + '\''
         user_pincode = newAdd.pincode.strip()
         user_city = newAdd.city.strip()
         user_street = newAdd.street.strip()
         user_state = newAdd.state.strip()
-        addList.append({'name':user_name,'phone':user_phone,'pincode':user_pincode,'city':user_city,'street':user_street,'state':user_state})
+        addList.append({'name':user_name,'phone':user_phone,'pincode':user_pincode,'city':user_city,'street':user_street,'state':user_state,'AddressId':user_id,'preference':preference.lower()})
+
+        if request.method == "PUT":
+            formData = request.body
+            new_data = str(formData)
+            if new_data == add_Id:
+                print("successful")
+                user_preference = True
+                instance = addresses.get(ordId=user_id)
+                instance.primary = user_preference
+                instance.save()
+
+            else:
+                user_preference = False
+                instance = addresses.get(ordId=user_id)
+                instance.primary = user_preference
+                instance.save()
+
+            print("formData:", formData)  # formData will be a bytes object
+            print("Request made")
     
     return render(request,'address.html',{'fname':fname,'prodList':prodList,'addList':addList})
     
